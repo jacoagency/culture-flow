@@ -1,0 +1,213 @@
+name: Release Build & Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - ios
+        - android
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+      submit_to_store:
+        description: 'Submit to app store after build'
+        required: false
+        default: false
+        type: boolean
+      version_bump:
+        description: 'Version bump type'
+        required: false
+        default: 'patch'
+        type: choice
+        options:
+        - major
+        - minor
+        - patch
+        - none
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  version-bump:
+    name: Version Bump
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.version_bump != 'none' }}
+    outputs:
+      new_version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 📈 Bump version
+        id: version
+        run: |
+          npm version ${{ github.event.inputs.version_bump }} --no-git-tag-version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+
+      - name: 💾 Commit version bump
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add package.json
+          git commit -m "chore: bump version to ${{ steps.version.outputs.version }}"
+          git push
+
+  build-mobile:
+    name: Build Mobile App
+    runs-on: ubuntu-latest
+    needs: version-bump
+    if: always() && (needs.version-bump.result == 'success' || needs.version-bump.result == 'skipped')
+    strategy:
+      matrix:
+        platform: ${{ fromJson(
+          github.event.inputs.platform == 'all' && '["ios", "android"]' ||
+          format('["{0}"]', github.event.inputs.platform)
+        ) }}
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 🏗 Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔧 Configure environment
+        run: |
+          if [ "${{ github.event.inputs.environment }}" = "production" ]; then
+            cp .env.production .env
+          elif [ "${{ github.event.inputs.environment }}" = "staging" ]; then
+            cp .env.staging .env
+          else
+            cp .env.development .env
+          fi
+
+      - name: 🚀 Build ${{ matrix.platform }}
+        env:
+          APP_ENV: ${{ github.event.inputs.environment }}
+        run: |
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            if [ "${{ github.event.inputs.environment }}" = "production" ]; then
+              eas build --platform ios --profile production-ios --non-interactive
+            else
+              eas build --platform ios --profile preview --non-interactive
+            fi
+          else
+            if [ "${{ github.event.inputs.environment }}" = "production" ]; then
+              eas build --platform android --profile production-android --non-interactive
+            else
+              eas build --platform android --profile preview --non-interactive
+            fi
+          fi
+
+      - name: 📱 Submit to App Store
+        if: ${{ github.event.inputs.submit_to_store == 'true' && github.event.inputs.environment == 'production' }}
+        run: |
+          if [ "${{ matrix.platform }}" = "ios" ]; then
+            eas submit --platform ios --non-interactive --wait
+          else
+            eas submit --platform android --non-interactive --wait
+          fi
+
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    needs: version-bump
+    if: always() && (needs.version-bump.result == 'success' || needs.version-bump.result == 'skipped')
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔐 Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 🚀 Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            culturaflow/backend:${{ github.event.inputs.environment }}-${{ github.sha }}
+            ${{ github.event.inputs.environment == 'production' && 'culturaflow/backend:latest' || '' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 🚀 Deploy to ${{ github.event.inputs.environment }}
+        run: |
+          echo "Deploying backend to ${{ github.event.inputs.environment }} environment"
+          # Add your deployment commands here (e.g., kubectl, docker-compose, etc.)
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [version-bump, build-mobile, deploy-backend]
+    if: ${{ github.event.inputs.environment == 'production' && needs.version-bump.outputs.new_version }}
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🏷️ Create release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.version-bump.outputs.new_version }}
+          release_name: CulturaFlow v${{ needs.version-bump.outputs.new_version }}
+          body: |
+            ## CulturaFlow v${{ needs.version-bump.outputs.new_version }}
+            
+            ### 🚀 What's New
+            - Built for ${{ github.event.inputs.platform }} platform(s)
+            - Deployed to ${{ github.event.inputs.environment }} environment
+            
+            ### 📱 Mobile App
+            - iOS Build: ${{ contains(github.event.inputs.platform, 'ios') || github.event.inputs.platform == 'all' }}
+            - Android Build: ${{ contains(github.event.inputs.platform, 'android') || github.event.inputs.platform == 'all' }}
+            
+            ### 🔧 Backend
+            - Backend deployed to ${{ github.event.inputs.environment }}
+            - Docker image: `culturaflow/backend:${{ github.event.inputs.environment }}-${{ github.sha }}`
+          draft: false
+          prerelease: ${{ github.event.inputs.environment != 'production' }}

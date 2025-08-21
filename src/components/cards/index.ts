@@ -1,0 +1,1 @@
+export { CulturalCard } from './CulturalCard';

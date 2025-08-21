@@ -1,0 +1,78 @@
+{
+  "app_name": "CulturaFlow",
+  "bundle_id": "com.culturaflow.app",
+  "version": "1.0.0",
+  "build_number": "1",
+  "category": "Education",
+  "content_rating": "4+",
+  "supported_languages": ["en-US", "es-ES", "fr-FR", "de-DE", "pt-PT"],
+  "app_description": {
+    "en-US": {
+      "title": "CulturaFlow - Cultural Learning Made Fun",
+      "subtitle": "Discover World Cultures Through Interactive Learning",
+      "description": "CulturaFlow transforms cultural education into an engaging, gamified experience. Explore diverse traditions, languages, customs, and histories from around the world through interactive content, quizzes, and challenges.\n\nKey Features:\n• 🌍 Comprehensive cultural content from 100+ countries\n• 🎮 Gamified learning with achievements and progress tracking\n• 📚 AI-powered personalized content recommendations\n• 🏆 Challenge friends and compete on leaderboards\n• 📱 Offline mode for learning anywhere\n• 🎨 Beautiful, intuitive interface designed for all ages\n• 🔊 Audio pronunciations and cultural music\n• 📖 Stories and legends from different cultures\n\nWhether you're a student, educator, traveler, or simply curious about the world, CulturaFlow makes cultural learning accessible, enjoyable, and meaningful. Build your cultural knowledge while earning badges, unlocking achievements, and connecting with a global community of learners.\n\nJoin thousands of users discovering the rich tapestry of human culture. Download CulturaFlow today and start your journey around the world!",
+      "keywords": "education,culture,learning,world,geography,history,languages,travel,quiz,gamification",
+      "promotional_text": "Discover world cultures through fun, interactive learning! Perfect for students, travelers, and curious minds."
+    },
+    "es-ES": {
+      "title": "CulturaFlow - Aprendizaje Cultural Divertido",
+      "subtitle": "Descubre las Culturas del Mundo con Aprendizaje Interactivo",
+      "description": "CulturaFlow transforma la educación cultural en una experiencia atractiva y gamificada. Explora tradiciones diversas, idiomas, costumbres e historias de todo el mundo a través de contenido interactivo, cuestionarios y desafíos.\n\nCaracterísticas principales:\n• 🌍 Contenido cultural integral de más de 100 países\n• 🎮 Aprendizaje gamificado con logros y seguimiento de progreso\n• 📚 Recomendaciones de contenido personalizadas con IA\n• 🏆 Desafía amigos y compite en tablas de clasificación\n• 📱 Modo sin conexión para aprender en cualquier lugar\n• 🎨 Interfaz hermosa e intuitiva diseñada para todas las edades\n• 🔊 Pronunciaciones de audio y música cultural\n• 📖 Historias y leyendas de diferentes culturas",
+      "keywords": "educación,cultura,aprendizaje,mundo,geografía,historia,idiomas,viaje,quiz,gamificación"
+    }
+  },
+  "screenshots": {
+    "iphone_6_5": [
+      "screenshots/ios/iPhone-6.5/1-home-screen.png",
+      "screenshots/ios/iPhone-6.5/2-cultural-content.png",
+      "screenshots/ios/iPhone-6.5/3-quiz-gameplay.png",
+      "screenshots/ios/iPhone-6.5/4-progress-tracking.png",
+      "screenshots/ios/iPhone-6.5/5-achievements.png"
+    ],
+    "iphone_5_5": [
+      "screenshots/ios/iPhone-5.5/1-home-screen.png",
+      "screenshots/ios/iPhone-5.5/2-cultural-content.png",
+      "screenshots/ios/iPhone-5.5/3-quiz-gameplay.png",
+      "screenshots/ios/iPhone-5.5/4-progress-tracking.png",
+      "screenshots/ios/iPhone-5.5/5-achievements.png"
+    ],
+    "ipad": [
+      "screenshots/ios/iPad/1-home-screen.png",
+      "screenshots/ios/iPad/2-cultural-content.png",
+      "screenshots/ios/iPad/3-quiz-gameplay.png",
+      "screenshots/ios/iPad/4-progress-tracking.png"
+    ]
+  },
+  "review_information": {
+    "contact_email": "support@culturaflow.com",
+    "contact_phone": "+1-555-0123",
+    "review_notes": "CulturaFlow is an educational app focused on cultural learning. All content is family-friendly and educational. The app includes:\n\n1. Cultural content sourced from reliable educational sources\n2. Gamification elements to encourage learning\n3. User accounts for progress tracking\n4. Optional social features for friendly competition\n\nNo inappropriate content, violence, or mature themes. Suitable for ages 4+."
+  },
+  "pricing": {
+    "model": "freemium",
+    "base_price": "free",
+    "in_app_purchases": [
+      {
+        "id": "premium_monthly",
+        "name": "CulturaFlow Premium - Monthly",
+        "price": "$4.99",
+        "description": "Unlock premium content, unlimited hearts, and exclusive features"
+      },
+      {
+        "id": "premium_yearly",
+        "name": "CulturaFlow Premium - Yearly",
+        "price": "$39.99",
+        "description": "Unlock premium content, unlimited hearts, and exclusive features (Save 33%)"
+      },
+      {
+        "id": "remove_ads",
+        "name": "Remove Ads",
+        "price": "$2.99",
+        "description": "Remove all advertisements from the app"
+      }
+    ]
+  },
+  "privacy_policy_url": "https://culturaflow.com/privacy",
+  "terms_of_service_url": "https://culturaflow.com/terms",
+  "support_url": "https://culturaflow.com/support"
+}

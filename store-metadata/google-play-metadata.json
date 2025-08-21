@@ -1,0 +1,103 @@
+{
+  "app_name": "CulturaFlow",
+  "package_name": "com.culturaflow.app",
+  "version": "1.0.0",
+  "version_code": 1,
+  "category": "EDUCATION",
+  "content_rating": "Everyone",
+  "target_sdk_version": 33,
+  "supported_languages": ["en-US", "es-ES", "fr-FR", "de-DE", "pt-PT"],
+  "app_description": {
+    "en-US": {
+      "title": "CulturaFlow - Cultural Learning Made Fun",
+      "short_description": "Discover world cultures through interactive, gamified learning. Perfect for students and curious minds!",
+      "full_description": "🌍 Transform your understanding of world cultures with CulturaFlow!\n\nCulturaFlow makes cultural education engaging through interactive content, gamification, and personalized learning. Explore traditions, languages, customs, and histories from over 100 countries.\n\n🎮 KEY FEATURES:\n✓ Interactive cultural content from 100+ countries\n✓ Gamified learning with points, badges, and achievements\n✓ AI-powered personalized recommendations\n✓ Offline mode - learn anywhere, anytime\n✓ Social features - challenge friends and compete\n✓ Beautiful, intuitive interface for all ages\n✓ Audio pronunciations and cultural music\n✓ Stories, legends, and historical facts\n✓ Progress tracking and detailed analytics\n✓ Regular content updates\n\n🏆 PERFECT FOR:\n• Students studying world cultures\n• Travelers preparing for trips\n• Educators teaching cultural diversity\n• Parents wanting to expand children's worldview\n• Anyone curious about global cultures\n\n📚 LEARNING CATEGORIES:\n• Traditional customs and celebrations\n• World languages and communication\n• Historical events and figures\n• Art, music, and literature\n• Food traditions and cuisine\n• Geography and landmarks\n• Social structures and values\n\n🎯 GAMIFICATION:\nEarn points for completing lessons, unlock achievements for reaching milestones, and climb leaderboards by mastering cultural knowledge. The more you learn, the more rewards you earn!\n\n🔒 PRIVACY & SAFETY:\nWe prioritize user privacy and data security. All content is family-friendly and educationally focused.\n\nJoin thousands of learners discovering the rich tapestry of human culture. Download CulturaFlow today and start your global adventure!",
+      "what_is_new": "🚀 Welcome to CulturaFlow v1.0!\n\n• Launch version with 100+ countries of cultural content\n• Interactive quizzes and learning activities\n• Gamification system with achievements and progress tracking\n• Offline mode for learning anywhere\n• Beautiful, intuitive user interface\n• AI-powered content recommendations\n• Social features for friendly competition"
+    }
+  },
+  "screenshots": {
+    "phone": [
+      "screenshots/android/phone/1-home-screen.png",
+      "screenshots/android/phone/2-cultural-content.png",
+      "screenshots/android/phone/3-quiz-gameplay.png",
+      "screenshots/android/phone/4-progress-tracking.png",
+      "screenshots/android/phone/5-achievements.png",
+      "screenshots/android/phone/6-social-features.png",
+      "screenshots/android/phone/7-offline-mode.png",
+      "screenshots/android/phone/8-profile-screen.png"
+    ],
+    "tablet_7": [
+      "screenshots/android/tablet-7/1-home-screen.png",
+      "screenshots/android/tablet-7/2-cultural-content.png",
+      "screenshots/android/tablet-7/3-quiz-gameplay.png",
+      "screenshots/android/tablet-7/4-progress-tracking.png"
+    ],
+    "tablet_10": [
+      "screenshots/android/tablet-10/1-home-screen.png",
+      "screenshots/android/tablet-10/2-cultural-content.png",
+      "screenshots/android/tablet-10/3-quiz-gameplay.png",
+      "screenshots/android/tablet-10/4-progress-tracking.png"
+    ]
+  },
+  "graphic_assets": {
+    "icon": "assets/google-play/icon-512x512.png",
+    "feature_graphic": "assets/google-play/feature-graphic-1024x500.png",
+    "promo_graphic": "assets/google-play/promo-graphic-180x120.png"
+  },
+  "pricing": {
+    "model": "free_with_in_app_purchases",
+    "in_app_products": [
+      {
+        "sku": "premium_monthly",
+        "type": "subscription",
+        "price": "$4.99",
+        "billing_period": "monthly",
+        "title": "CulturaFlow Premium Monthly",
+        "description": "Unlock premium content, unlimited hearts, and exclusive features"
+      },
+      {
+        "sku": "premium_yearly", 
+        "type": "subscription",
+        "price": "$39.99",
+        "billing_period": "yearly",
+        "title": "CulturaFlow Premium Yearly",
+        "description": "Unlock premium content, unlimited hearts, and exclusive features (Save 33%)"
+      },
+      {
+        "sku": "remove_ads",
+        "type": "one_time",
+        "price": "$2.99",
+        "title": "Remove Ads",
+        "description": "Remove all advertisements from the app permanently"
+      }
+    ]
+  },
+  "permissions": [
+    {
+      "name": "INTERNET",
+      "reason": "Required to download cultural content and sync user progress"
+    },
+    {
+      "name": "ACCESS_NETWORK_STATE",
+      "reason": "Check network connectivity for optimal user experience"
+    },
+    {
+      "name": "CAMERA",
+      "reason": "Optional: Take photos to share cultural discoveries with friends"
+    },
+    {
+      "name": "RECORD_AUDIO",
+      "reason": "Optional: Practice pronunciation of words from different cultures"
+    },
+    {
+      "name": "ACCESS_FINE_LOCATION",
+      "reason": "Optional: Provide culturally relevant content based on your location"
+    }
+  ],
+  "target_audience": {
+    "age_range": "Everyone",
+    "interests": ["Education", "Culture", "Travel", "Languages", "History"]
+  },
+  "privacy_policy_url": "https://culturaflow.com/privacy",
+  "terms_of_service_url": "https://culturaflow.com/terms"
+}

@@ -1,0 +1,258 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop, staging]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '18'
+  EXPO_VERSION: '50.0.0'
+
+jobs:
+  # Frontend Testing and Linting
+  frontend-test:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🧹 Run linter
+        run: npm run lint
+
+      - name: 🔍 Type check
+        run: npm run type-check
+
+      - name: 🧪 Run tests
+        run: npm test -- --coverage --watchAll=false
+
+      - name: 📊 Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+
+  # Backend Testing and Linting
+  backend-test:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: culturaflow
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: culturaflow_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: 📦 Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: 🗄️ Setup database
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://culturaflow:password@localhost:5432/culturaflow_test
+          REDIS_URL: redis://localhost:6379
+        run: |
+          npx prisma migrate deploy
+          npm run generate
+
+      - name: 🧹 Run backend linter
+        working-directory: ./backend
+        run: npm run lint
+
+      - name: 🧪 Run backend tests
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://culturaflow:password@localhost:5432/culturaflow_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-secret
+          NODE_ENV: test
+        run: npm test
+
+      - name: 📊 Upload backend coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage/lcov.info
+          flags: backend
+          name: backend-coverage
+
+  # Build and Deploy (Development)
+  build-development:
+    name: Build Development
+    runs-on: ubuntu-latest
+    needs: [frontend-test, backend-test]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 🏗 Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🚀 Build development app
+        env:
+          APP_ENV: development
+        run: eas build --profile development --non-interactive --no-wait
+
+  # Build and Deploy (Staging)
+  build-staging:
+    name: Build Staging
+    runs-on: ubuntu-latest
+    needs: [frontend-test, backend-test]
+    if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 🏗 Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🚀 Build preview app
+        env:
+          APP_ENV: staging
+        run: eas build --profile preview --non-interactive --no-wait
+
+      - name: 🚀 Deploy backend to staging
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: culturaflow/backend:staging-${{ github.sha }}
+
+  # Build and Deploy (Production)
+  build-production:
+    name: Build Production
+    runs-on: ubuntu-latest
+    needs: [frontend-test, backend-test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 🏗 Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🚀 Build production app
+        env:
+          APP_ENV: production
+        run: eas build --profile production --non-interactive --no-wait
+
+      - name: 🚀 Deploy backend to production
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: culturaflow/backend:production-${{ github.sha }},culturaflow/backend:latest
+
+  # Submit to App Stores (Manual Trigger)
+  submit-stores:
+    name: Submit to App Stores
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 🏗 Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🍎 Submit to iOS App Store
+        run: eas submit --platform ios --non-interactive
+        env:
+          EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
+          EXPO_ASC_APP_ID: ${{ secrets.EXPO_ASC_APP_ID }}
+
+      - name: 🤖 Submit to Google Play Store
+        run: eas submit --platform android --non-interactive

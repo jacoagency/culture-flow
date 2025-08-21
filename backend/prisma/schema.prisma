@@ -1,0 +1,287 @@
+// Prisma Schema for CulturaFlow Backend
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id                String              @id @default(cuid())
+  email             String              @unique
+  username          String              @unique
+  password          String
+  firstName         String?
+  lastName          String?
+  avatar            String?
+  dateOfBirth       DateTime?
+  country           String?
+  language          String              @default("en")
+  timeZone          String              @default("UTC")
+  isVerified        Boolean             @default(false)
+  isActive          Boolean             @default(true)
+  lastActive        DateTime            @default(now())
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relationships
+  profile           UserProfile?
+  sessions          UserSession[]
+  progress          UserProgress[]
+  interactions      ContentInteraction[]
+  achievements      UserAchievement[]
+  streaks           UserStreak[]
+  analytics         UserAnalytics[]
+  recommendations   UserRecommendation[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  bio                   String?
+  interests             String[] // Array of interest categories
+  learningGoals         String[] // Daily, weekly goals
+  preferredCategories   String[] // Preferred cultural categories
+  difficultyLevel       Int      @default(1) // 1-5 scale
+  dailyGoalMinutes      Int      @default(15)
+  notificationsEnabled  Boolean  @default(true)
+  publicProfile         Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model UserSession {
+  id           String   @id @default(cuid())
+  userId       String
+  refreshToken String   @unique
+  userAgent    String?
+  ipAddress    String?
+  isActive     Boolean  @default(true)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+// Cultural Content Management
+model CulturalContent {
+  id              String                @id @default(cuid())
+  title           String
+  description     String
+  content         Json                  // Rich content data
+  category        ContentCategory
+  subcategory     String?
+  difficulty      Int                   @default(1) // 1-5 scale
+  estimatedTime   Int                   @default(60) // seconds
+  mediaUrl        String?
+  thumbnailUrl    String?
+  audioUrl        String?
+  tags            String[]
+  language        String                @default("en")
+  isActive        Boolean               @default(true)
+  isFeatured      Boolean               @default(false)
+  viewCount       Int                   @default(0)
+  likeCount       Int                   @default(0)
+  shareCount      Int                   @default(0)
+  createdBy       String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  // Relationships
+  interactions    ContentInteraction[]
+  progress        UserProgress[]
+  recommendations UserRecommendation[]
+
+  @@map("cultural_content")
+}
+
+enum ContentCategory {
+  HISTORY
+  ART
+  MUSIC
+  LITERATURE
+  ARCHITECTURE
+  POPULAR_CULTURE
+  MYTHOLOGY
+  TRADITIONS
+  FOOD_CULTURE
+  PHILOSOPHY
+}
+
+model ContentInteraction {
+  id        String          @id @default(cuid())
+  userId    String
+  contentId String
+  type      InteractionType
+  value     Json? // Additional data for interaction
+  createdAt DateTime        @default(now())
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content CulturalContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId, type])
+  @@map("content_interactions")
+}
+
+enum InteractionType {
+  VIEW
+  LIKE
+  DISLIKE
+  SAVE
+  SHARE
+  COMPLETE
+  SKIP
+}
+
+// Gamification System
+model UserProgress {
+  id                String          @id @default(cuid())
+  userId            String
+  contentId         String
+  status            ProgressStatus
+  timeSpent         Int             @default(0) // seconds
+  score             Int?
+  completionRate    Float           @default(0.0)
+  attempts          Int             @default(0)
+  lastAttemptAt     DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content CulturalContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+  @@map("user_progress")
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  category    String
+  icon        String?
+  points      Int      @default(0)
+  rarity      String   @default("common") // common, rare, epic, legendary
+  condition   Json     // Achievement unlock conditions
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}
+
+model UserStreak {
+  id            String   @id @default(cuid())
+  userId        String
+  category      String   @default("daily") // daily, weekly, monthly
+  currentStreak Int      @default(0)
+  longestStreak Int      @default(0)
+  lastActiveAt  DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category])
+  @@map("user_streaks")
+}
+
+// Analytics and Recommendations
+model UserAnalytics {
+  id                    String   @id @default(cuid())
+  userId                String
+  date                  DateTime @default(now())
+  sessionDuration       Int      @default(0) // seconds
+  contentViewed         Int      @default(0)
+  contentCompleted      Int      @default(0)
+  pointsEarned          Int      @default(0)
+  categoriesExplored    String[]
+  avgCompletionRate     Float    @default(0.0)
+  deviceType            String?
+  appVersion            String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_analytics")
+}
+
+model UserRecommendation {
+  id        String          @id @default(cuid())
+  userId    String
+  contentId String
+  score     Float           @default(0.0)
+  reason    String?         // Explanation for recommendation
+  algorithm String          // Which algorithm generated this
+  isShown   Boolean         @default(false)
+  isClicked Boolean         @default(false)
+  createdAt DateTime        @default(now())
+  expiresAt DateTime?
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content CulturalContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId, algorithm])
+  @@map("user_recommendations")
+}
+
+// System Tables
+model AppConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("app_config")
+}
+
+model ContentQueue {
+  id          String   @id @default(cuid())
+  type        String   // 'generation', 'processing', 'validation'
+  priority    Int      @default(5) // 1-10 scale
+  payload     Json
+  status      String   @default("pending") // pending, processing, completed, failed
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(3)
+  error       String?
+  scheduledAt DateTime @default(now())
+  processedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  @@map("content_queue")
+}
