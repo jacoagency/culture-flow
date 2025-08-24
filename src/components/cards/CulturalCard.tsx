@@ -30,6 +30,7 @@ interface CulturalCardProps {
   card: CulturalCardType;
   onLike: (cardId: string) => void;
   onSave: (cardId: string) => void;
+  onPress?: (card: CulturalCardType) => void;
   onNext: () => void;
   isVisible: boolean;
 }
@@ -38,6 +39,7 @@ export const CulturalCard: React.FC<CulturalCardProps> = ({
   card,
   onLike,
   onSave,
+  onPress,
   onNext,
   isVisible,
 }) => {
@@ -139,8 +141,12 @@ export const CulturalCard: React.FC<CulturalCardProps> = ({
             </View>
           )}
 
-          {/* Content */}
-          <View style={styles.content}>
+          {/* Content - Clickeable */}
+          <TouchableOpacity 
+            style={styles.content}
+            onPress={() => onPress?.(card)}
+            activeOpacity={0.8}
+          >
             <Text style={[styles.title, { color: theme.colors.text }]}>
               {card.title}
             </Text>
@@ -183,7 +189,7 @@ export const CulturalCard: React.FC<CulturalCardProps> = ({
                 </View>
               ))}
             </View>
-          </View>
+          </TouchableOpacity>
 
           {/* Footer */}
           <View style={styles.footer}>

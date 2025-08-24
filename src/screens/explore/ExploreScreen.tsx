@@ -7,49 +7,78 @@ import {
   TouchableOpacity,
   FlatList,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { Card, Icon } from '../../components/ui';
-import { categories, mockCards } from '../../data/mockData';
-import { categoryColors } from '../../theme/colors';
+import { useExploreContent, useFeaturedContent, EXPLORE_CATEGORIES } from '../../hooks/useExploreContent';
+import { useContentSearch } from '../../hooks/useContent';
 
 export const ExploreScreen: React.FC = () => {
   const { theme } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredCards = mockCards.filter(card => {
-    const matchesCategory = !selectedCategory || card.category.id === selectedCategory;
-    const matchesSearch = !searchQuery || 
-      card.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      card.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      card.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    return matchesCategory && matchesSearch;
-  });
+  const { 
+    categories, 
+    categoryContent, 
+    loading: exploreLoading,
+    loadCategoryContent 
+  } = useExploreContent();
+  
+  const { featuredContent } = useFeaturedContent();
+  const { results: searchResults, loading: searchLoading, search } = useContentSearch();
+
+  // Handle search
+  React.useEffect(() => {
+    if (searchQuery) {
+      const timeoutId = setTimeout(() => {
+        search(searchQuery, selectedCategory || undefined);
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [searchQuery, selectedCategory, search]);
+
+  // Get content to display
+  const getDisplayContent = () => {
+    if (searchQuery) {
+      return searchResults;
+    }
+    if (selectedCategory) {
+      return categoryContent[selectedCategory] || [];
+    }
+    return featuredContent;
+  };
+
+  const displayContent = getDisplayContent();
+  const isLoading = exploreLoading || searchLoading;
 
   const CategoryCard = ({ category }: { category: any }) => {
     const isSelected = selectedCategory === category.id;
-    const categoryColor = categoryColors[category.id as keyof typeof categoryColors];
+    
+    const handleCategoryPress = async () => {
+      const newCategory = isSelected ? null : category.id;
+      setSelectedCategory(newCategory);
+      
+      if (newCategory && !categoryContent[newCategory]) {
+        await loadCategoryContent(newCategory);
+      }
+    };
     
     return (
       <TouchableOpacity
         style={[
           styles.categoryCard,
           {
-            backgroundColor: isSelected ? categoryColor : theme.colors.card,
-            borderColor: categoryColor,
+            backgroundColor: isSelected ? category.color : theme.colors.card,
+            borderColor: category.color,
             borderWidth: isSelected ? 0 : 1,
           }
         ]}
-        onPress={() => setSelectedCategory(isSelected ? null : category.id)}
+        onPress={handleCategoryPress}
         activeOpacity={0.8}
       >
-        <Icon
-          name={category.icon}
-          size={32}
-          color={isSelected ? '#fff' : categoryColor}
-        />
+        <Text style={{ fontSize: 32 }}>{category.icon}</Text>
         <Text
           style={[
             styles.categoryCardTitle,
@@ -66,50 +95,66 @@ export const ExploreScreen: React.FC = () => {
         >
           {category.description}
         </Text>
+        {category.content_count > 0 && (
+          <Text
+            style={[
+              styles.contentCount,
+              { color: isSelected ? 'rgba(255,255,255,0.9)' : theme.colors.textSecondary }
+            ]}
+          >
+            {category.content_count} contenidos
+          </Text>
+        )}
       </TouchableOpacity>
     );
   };
 
-  const CardPreview = ({ card }: { card: any }) => (
-    <TouchableOpacity style={styles.cardPreview} activeOpacity={0.8}>
-      <Card style={styles.previewCard}>
-        <View style={styles.previewHeader}>
-          <View
-            style={[
-              styles.previewCategoryBadge,
-              { backgroundColor: categoryColors[card.category.id as keyof typeof categoryColors] }
-            ]}
-          >
-            <Text style={styles.previewCategoryText}>{card.category.name}</Text>
-          </View>
-          <Text style={[styles.previewDifficulty, { color: theme.colors.textSecondary }]}>
-            {card.difficulty.toUpperCase()}
-          </Text>
-        </View>
-        
-        <Text style={[styles.previewTitle, { color: theme.colors.text }]} numberOfLines={2}>
-          {card.title}
-        </Text>
-        
-        <Text style={[styles.previewDescription, { color: theme.colors.textSecondary }]} numberOfLines={3}>
-          {card.description}
-        </Text>
-        
-        <View style={styles.previewFooter}>
-          <View style={styles.previewTags}>
-            {card.tags.slice(0, 2).map((tag: string, index: number) => (
-              <Text key={index} style={[styles.previewTag, { color: theme.colors.primary }]}>
-                #{tag}
+  const CardPreview = ({ card }: { card: any }) => {
+    const categoryInfo = categories.find(cat => cat.id === card.category);
+    
+    return (
+      <TouchableOpacity style={styles.cardPreview} activeOpacity={0.8}>
+        <Card style={styles.previewCard}>
+          <View style={styles.previewHeader}>
+            <View
+              style={[
+                styles.previewCategoryBadge,
+                { backgroundColor: categoryInfo?.color || theme.colors.primary }
+              ]}
+            >
+              <Text style={styles.previewCategoryText}>
+                {categoryInfo?.name || card.category}
               </Text>
-            ))}
+            </View>
+            <Text style={[styles.previewDifficulty, { color: theme.colors.textSecondary }]}>
+              {card.difficulty?.toUpperCase()}
+            </Text>
           </View>
-          <Text style={[styles.previewPoints, { color: theme.colors.primary }]}>
-            +{card.points} pts
+          
+          <Text style={[styles.previewTitle, { color: theme.colors.text }]} numberOfLines={2}>
+            {card.title}
           </Text>
-        </View>
-      </Card>
-    </TouchableOpacity>
-  );
+          
+          <Text style={[styles.previewDescription, { color: theme.colors.textSecondary }]} numberOfLines={3}>
+            {card.description}
+          </Text>
+          
+          <View style={styles.previewFooter}>
+            <View style={styles.previewTags}>
+              {card.tags?.slice(0, 2).map((tag: string, index: number) => (
+                <Text key={index} style={[styles.previewTag, { color: theme.colors.primary }]}>
+                  #{tag}
+                </Text>
+              ))}
+            </View>
+            <Text style={[styles.previewPoints, { color: theme.colors.primary }]}>
+              +{card.points_reward || card.points || 0} pts
+            </Text>
+          </View>
+        </Card>
+      </TouchableOpacity>
+    );
+  };
 
   const renderCard = ({ item }: { item: any }) => (
     <CardPreview card={item} />
@@ -170,23 +215,32 @@ export const ExploreScreen: React.FC = () => {
                 ? `${categories.find(c => c.id === selectedCategory)?.name}`
                 : searchQuery
                 ? `Resultados para "${searchQuery}"`
-                : 'Contenido Popular'
+                : 'Contenido Destacado'
               }
             </Text>
             <Text style={[styles.resultsCount, { color: theme.colors.textSecondary }]}>
-              {filteredCards.length} tarjetas
+              {displayContent.length} contenidos
             </Text>
           </View>
 
-          <FlatList
-            data={filteredCards}
-            renderItem={renderCard}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            columnWrapperStyle={styles.row}
-            scrollEnabled={false}
-            contentContainerStyle={styles.cardsList}
-          />
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={theme.colors.primary} />
+              <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
+                Cargando contenido...
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={displayContent}
+              renderItem={renderCard}
+              keyExtractor={(item) => item.id}
+              numColumns={2}
+              columnWrapperStyle={styles.row}
+              scrollEnabled={false}
+              contentContainerStyle={styles.cardsList}
+            />
+          )}
         </View>
       </ScrollView>
     </View>
@@ -326,5 +380,18 @@ const styles = StyleSheet.create({
   previewPoints: {
     fontSize: 12,
     fontWeight: '700',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+  },
+  contentCount: {
+    fontSize: 10,
+    marginTop: 4,
+    textAlign: 'center',
   },
 });

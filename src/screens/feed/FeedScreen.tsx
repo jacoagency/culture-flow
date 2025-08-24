@@ -8,9 +8,10 @@ import {
   ActivityIndicator,
   Text,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { CulturalCard } from '../../components/cards';
-import { CulturalCard as CulturalCardType } from '../../types';
+import { ContentItem } from '../../services/supabaseContent';
 import { useContent, useContentInteractions } from '../../hooks/useContent';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -18,6 +19,7 @@ const { height: screenHeight } = Dimensions.get('window');
 
 export const FeedScreen: React.FC = () => {
   const { theme } = useTheme();
+  const navigation = useNavigation();
   const { user, refreshUser } = useAuth();
   const { content, loading, error, loadMore, refresh, hasMore } = useContent();
   const { recordInteraction, updateProgress } = useContentInteractions();
@@ -52,6 +54,15 @@ export const FeedScreen: React.FC = () => {
     }
   }, [recordInteraction, updateProgress]);
 
+  const handleCardPress = useCallback((card: any) => {
+    // Navegar a la pantalla de detalle
+    const contentData = {
+      contentId: card.id,
+      content: card,
+    };
+    navigation.navigate('content-detail' as never, contentData as never);
+  }, [navigation]);
+
   const handleNext = useCallback(() => {
     if (currentIndex < content.length - 1) {
       setCurrentIndex(prevIndex => prevIndex + 1);
@@ -80,6 +91,7 @@ export const FeedScreen: React.FC = () => {
           card={card}
           onLike={handleLike}
           onSave={handleSave}
+          onPress={handleCardPress}
           onNext={handleNext}
           isVisible={index === 0}
         />

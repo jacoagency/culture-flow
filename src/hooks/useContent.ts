@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { apiClient } from '../services/api';
-import { CulturalContent, ContentCategory } from '../types';
+import { contentService, ContentItem } from '../services/supabaseContent';
+import { useAuth } from '../contexts/AuthContext';
 
 interface UseContentResult {
-  content: CulturalContent[];
+  content: ContentItem[];
   loading: boolean;
   error: string | null;
   loadMore: () => Promise<void>;
@@ -12,20 +12,21 @@ interface UseContentResult {
 }
 
 interface UseContentOptions {
-  category?: ContentCategory;
+  category?: string;
   initialLoad?: boolean;
 }
 
 export const useContent = (options: UseContentOptions = {}): UseContentResult => {
   const { category, initialLoad = true } = options;
-  const [content, setContent] = useState<CulturalContent[]>([]);
+  const { user } = useAuth();
+  const [content, setContent] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
   const loadContent = useCallback(async (pageNum: number = 1, reset: boolean = false) => {
-    if (loading) return;
+    if (loading || !user) return;
     
     setLoading(true);
     setError(null);
@@ -33,13 +34,13 @@ export const useContent = (options: UseContentOptions = {}): UseContentResult =>
     try {
       let response;
       if (category) {
-        response = await apiClient.getContentByCategory(category, pageNum);
+        response = await contentService.getContentByCategory(category, pageNum);
       } else {
-        response = await apiClient.getFeed(pageNum);
+        response = await contentService.getFeedContent(user.id, pageNum);
       }
 
       if (response.success && response.data) {
-        const newContent = response.data.content || response.data;
+        const newContent = response.data;
         
         if (reset) {
           setContent(newContent);
@@ -52,13 +53,14 @@ export const useContent = (options: UseContentOptions = {}): UseContentResult =>
       } else {
         setError(response.error || 'Error loading content');
       }
+      
     } catch (err) {
       setError('Error loading content');
       console.error('Content loading error:', err);
     } finally {
       setLoading(false);
     }
-  }, [category, loading]);
+  }, [category, loading, user]);
 
   const loadMore = useCallback(async () => {
     if (hasMore && !loading) {
@@ -90,7 +92,7 @@ export const useContent = (options: UseContentOptions = {}): UseContentResult =>
 
 // Hook for trending content
 export const useTrendingContent = (period: '1h' | '24h' | '7d' = '24h') => {
-  const [content, setContent] = useState<CulturalContent[]>([]);
+  const [content, setContent] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -99,7 +101,7 @@ export const useTrendingContent = (period: '1h' | '24h' | '7d' = '24h') => {
     setError(null);
 
     try {
-      const response = await apiClient.getTrendingContent(period);
+      const response = await contentService.getTrendingContent(period);
       if (response.success && response.data) {
         setContent(response.data);
       } else {
@@ -122,11 +124,11 @@ export const useTrendingContent = (period: '1h' | '24h' | '7d' = '24h') => {
 
 // Hook for content search
 export const useContentSearch = () => {
-  const [results, setResults] = useState<CulturalContent[]>([]);
+  const [results, setResults] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const search = useCallback(async (query: string, category?: ContentCategory) => {
+  const search = useCallback(async (query: string, category?: string) => {
     if (!query.trim()) {
       setResults([]);
       return;
@@ -136,7 +138,7 @@ export const useContentSearch = () => {
     setError(null);
 
     try {
-      const response = await apiClient.searchContent(query, category);
+      const response = await contentService.searchContent(query, category);
       if (response.success && response.data) {
         setResults(response.data);
       } else {
@@ -162,36 +164,45 @@ export const useContentSearch = () => {
 
 // Hook for content interactions
 export const useContentInteractions = () => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const recordInteraction = useCallback(async (
     contentId: string, 
-    type: 'like' | 'save' | 'share' | 'view'
+    type: 'like' | 'save' | 'share' | 'view' | 'complete',
+    timeSpent?: number,
+    score?: number
   ) => {
+    if (!user) return;
+
     try {
       setLoading(true);
-      await apiClient.recordInteraction(contentId, type);
+      await contentService.recordInteraction(user.id, contentId, type, timeSpent, score);
     } catch (error) {
       console.error('Interaction error:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   const updateProgress = useCallback(async (
     contentId: string, 
     timeSpent: number, 
-    completed: boolean = false
+    completed: boolean = false,
+    score?: number
   ) => {
+    if (!user) return;
+
     try {
       setLoading(true);
-      await apiClient.updateProgress(contentId, timeSpent, completed);
+      const type = completed ? 'complete' : 'view';
+      await contentService.recordInteraction(user.id, contentId, type, timeSpent, score);
     } catch (error) {
       console.error('Progress update error:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   return { recordInteraction, updateProgress, loading };
 };

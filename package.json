@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "start": "expo start",
+    "start": "expo start --port 8000",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web",
+    "web": "expo start --web --port 8000",
     "test": "jest",
     "test:watch": "jest --watch"
   },
@@ -16,8 +16,10 @@
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-navigation/bottom-tabs": "^6.5.11",
     "@react-navigation/native": "^6.1.9",
+    "@react-navigation/native-stack": "^6.11.0",
     "@react-navigation/stack": "^6.3.20",
-    "expo": "~53.0.20",
+    "@supabase/supabase-js": "^2.56.0",
+    "expo": "53.0.22",
     "expo-linear-gradient": "^14.1.5",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
@@ -27,6 +29,7 @@
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
+    "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.0.3",
     "react-native-web": "^0.20.0"
   },

@@ -1,0 +1,1 @@
+export { ContentDetailScreen } from './ContentDetailScreen';
