@@ -13,18 +13,39 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.culturaflow.app"
+      "bundleIdentifier": "com.culturaflow.app",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSExceptionDomains": {
+            "supabase.co": {
+              "NSExceptionAllowsInsecureHTTPLoads": false,
+              "NSExceptionMinimumTLSVersion": "1.0"
+            },
+            "jehxmrcveflxygeoqqjo.supabase.co": {
+              "NSExceptionAllowsInsecureHTTPLoads": false,
+              "NSExceptionMinimumTLSVersion": "1.0"
+            }
+          }
+        }
+      }
     },
     "android": {
       "package": "com.culturaflow.app",
       "permissions": [
         "INTERNET",
-        "ACCESS_NETWORK_STATE"
-      ]
+        "ACCESS_NETWORK_STATE",
+        "ACCESS_WIFI_STATE"
+      ],
+      "usesCleartextTraffic": false,
+      "networkSecurityConfig": "./android-network-security-config.xml"
     },
     "web": {
       "bundler": "metro"
     },
-    "plugins": []
+    "plugins": [],
+    "extra": {
+      "supabaseUrl": "https://jehxmrcveflxygeoqqjo.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplaHhtcmN2ZWZseHlnZW9xcWpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MjYwODksImV4cCI6MjA3MTQwMjA4OX0.cYjN03KDVh67kgbxB2P9A4DWLH-YO5vyLtbcIkyptis"
+    }
   }
 }

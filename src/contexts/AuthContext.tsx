@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Listen for auth changes
     const { data: { subscription } } = authService.supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event);
+      console.log('🔐 Auth event:', event, 'Session exists:', !!session);
       setSession(session);
       
       if (session?.user) {

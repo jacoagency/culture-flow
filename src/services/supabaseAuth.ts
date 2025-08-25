@@ -30,6 +30,8 @@ export class SupabaseAuthService {
   // Sign up new user
   async signUp(userData: RegisterData) {
     try {
+      console.log('📧 Attempting signup for:', userData.email);
+      
       const { data, error } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
@@ -41,7 +43,12 @@ export class SupabaseAuthService {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Signup error:', error.message);
+        throw error;
+      }
+
+      console.log('✅ Signup successful for:', userData.email);
 
       // Create user profile in our custom table
       if (data.user) {

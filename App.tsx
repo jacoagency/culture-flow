@@ -1,5 +1,5 @@
 import 'react-native-url-polyfill/auto';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -8,10 +8,22 @@ import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ThemeContext, useThemeProvider } from './src/hooks/useTheme';
 import { AuthScreen } from './src/screens/AuthScreen';
 import { AppNavigator } from './src/navigation';
+import { testConnectivity, logEnvironmentInfo } from './src/utils/connectivity';
 
 const AppContent: React.FC = () => {
   const { theme } = useThemeProvider();
   const { user, loading } = useAuth();
+
+  useEffect(() => {
+    // Test connectivity on app startup
+    logEnvironmentInfo();
+    testConnectivity().then(result => {
+      console.log('🔍 Startup connectivity test:', result);
+      if (!result.isConnected) {
+        console.error('⚠️ App started without Supabase connection:', result.error);
+      }
+    });
+  }, []);
 
   if (loading) {
     return (
