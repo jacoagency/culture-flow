@@ -1,8 +1,8 @@
-# =€ INSTRUCCIONES RÁPIDAS - CulturaFlow
+# =ï¿½ INSTRUCCIONES Rï¿½PIDAS - CulturaFlow
 
-## =Ý **PASOS PARA CONFIGURAR SUPABASE** (3 minutos)
+## =ï¿½ **PASOS PARA CONFIGURAR SUPABASE** (3 minutos)
 
-### 1ã **LIMPIAR BASE DE DATOS**
+### 1ï¿½ **LIMPIAR BASE DE DATOS**
 ```sql
 -- Copia y ejecuta en Supabase SQL Editor:
 ```
@@ -13,31 +13,33 @@ Ve a: https://supabase.com/dashboard/project/jehxmrcveflxygeoqqjo/sql
 
 **Paso 2**: Ejecuta el contenido de `supabase_setup.sql` (para crear la estructura)
 
-**Paso 3**: Ejecuta el contenido de `supabase_seed_data.sql` (para agregar contenido)
+**Paso 3**: Ejecuta el contenido de `supabase_seed_data.sql` (para agregar contenido inicial)
 
-### 2ã **ARREGLAR ERROR DE VS CODE**
+**Paso 4**: Ejecuta el contenido de `supabase_additional_content.sql` (para agregar mÃ¡s contenido - 25+ artÃ­culos adicionales)
 
-El error rojo en App.tsx línea 7 es un problema de caché de VS Code.
+### 2ï¿½ **ARREGLAR ERROR DE VS CODE**
 
-**Solución rápida:**
+El error rojo en App.tsx lï¿½nea 7 es un problema de cachï¿½ de VS Code.
+
+**Soluciï¿½n rï¿½pida:**
 ```bash
 # Reinicia VS Code o ejecuta:
 Cmd + Shift + P (Mac) o Ctrl + Shift + P (Windows)
 > "Developer: Reload Window"
 ```
 
-**O simplemente ignóralo** - la app funcionará perfectamente.
+**O simplemente ignï¿½ralo** - la app funcionarï¿½ perfectamente.
 
-### 3ã **EJECUTAR LA APP**
+### 3ï¿½ **EJECUTAR LA APP**
 
-## =» **COMPUTADORA LOCAL (Web)**
+## =ï¿½ **COMPUTADORA LOCAL (Web)**
 ```bash
 # En tu terminal:
 npm run web
 ```
-La app se abre automáticamente en: **http://localhost:8000**
+La app se abre automï¿½ticamente en: **http://localhost:8000**
 
-## =ñ **MÓVIL (iOS/Android)**
+## =ï¿½ **Mï¿½VIL (iOS/Android)**
 ```bash
 # En tu terminal:
 npm start
@@ -45,59 +47,59 @@ npm start
 
 **Para iOS:**
 - Presiona `i` para abrir iOS Simulator
-- O escanea el QR con la cámara de iPhone
+- O escanea el QR con la cï¿½mara de iPhone
 
 **Para Android:**
 - Presiona `a` para abrir Android Emulator  
 - O descarga **Expo Go** y escanea el QR
 
-## <¯ **PROBAR LA APP**
+## <ï¿½ **PROBAR LA APP**
 1. **Crea una cuenta** con cualquier email
-2. **Explora las categorías** (Arte, Historia, Música, etc.)
+2. **Explora las categorï¿½as** (Arte, Historia, Mï¿½sica, etc.)
 3. **Toca las cards** para ver el contenido completo
-4. **Gana puntos** dando like y completando artículos
-5. **¡Disfruta la app!** <‰
+4. **Gana puntos** dando like y completando artï¿½culos
+5. **ï¿½Disfruta la app!** <ï¿½
 
 ---
 
-## <¯ **QUÉ HACE LA APP**
+## <ï¿½ **QUï¿½ HACE LA APP**
 
 ### **Feed Principal**
 - Contenido cultural personalizado
 - Algoritmo que aprende de tus gustos
 - Scroll infinito tipo TikTok
 
-### **Sección Explore** 
-- 8 categorías: Arte, Historia, Música, Literatura, Gastronomía, Tradiciones, Ciencia, Geografía
-- Búsqueda por tags y palabras clave
+### **Secciï¿½n Explore** 
+- 8 categorï¿½as: Arte, Historia, Mï¿½sica, Literatura, Gastronomï¿½a, Tradiciones, Ciencia, Geografï¿½a
+- Bï¿½squeda por tags y palabras clave
 - Cards infinitos de contenido cultural
 
 ### **Sistema de Puntos**
 - Ganas puntos por ver, dar like, guardar contenido
-- Subes de nivel automáticamente
+- Subes de nivel automï¿½ticamente
 - Sistema de rachas diarias
 
 ### **Contenido Incluido**
-- 15+ artículos culturales reales
+- 15+ artï¿½culos culturales reales
 - Quizzes interactivos
-- Datos curiosos y hechos históricos
-- Contenido en español de alta calidad
+- Datos curiosos y hechos histï¿½ricos
+- Contenido en espaï¿½ol de alta calidad
 
 ---
 
-## ¡ **SOLUCIÓN DE PROBLEMAS**
+## ï¿½ **SOLUCIï¿½N DE PROBLEMAS**
 
-### L **Error de importación en VS Code**
-**Solución**: Reinicia VS Code o ignóralo - es solo visual
+### L **Error de importaciï¿½n en VS Code**
+**Soluciï¿½n**: Reinicia VS Code o ignï¿½ralo - es solo visual
 
 ### L **App no se conecta a Supabase**
-**Solución**: Verifica que ejecutaste los 3 scripts SQL en orden
+**Soluciï¿½n**: Verifica que ejecutaste los 3 scripts SQL en orden
 
 ### L **No aparece contenido**
-**Solución**: Ejecuta `supabase_seed_data.sql` para agregar contenido inicial
+**Soluciï¿½n**: Ejecuta `supabase_seed_data.sql` para agregar contenido inicial
 
 ### L **Error de build**
-**Solución**: 
+**Soluciï¿½n**: 
 ```bash
 npm install
 npx expo install --fix
@@ -105,19 +107,19 @@ npx expo install --fix
 
 ---
 
-## =€ **¡LISTO PARA PRODUCCIÓN!**
+## =ï¿½ **ï¿½LISTO PARA PRODUCCIï¿½N!**
 
-Tu app está completamente lista para:
+Tu app estï¿½ completamente lista para:
 -  Google Play Store
 -  Apple App Store  
 -  Usuarios reales
 -  Escalabilidad
 
-**Solo necesitas ejecutar los 3 scripts SQL y ya tienes una app completa funcionando** <‰
+**Solo necesitas ejecutar los 3 scripts SQL y ya tienes una app completa funcionando** <ï¿½
 
 ---
 
-## =ñ **Para Despliegue**
+## =ï¿½ **Para Despliegue**
 
 ```bash
 # Instalar EAS CLI
@@ -130,4 +132,4 @@ eas login
 eas build --platform all
 ```
 
-¡Tu app CulturaFlow está lista! <¨=Ú<µ
+ï¿½Tu app CulturaFlow estï¿½ lista! <ï¿½=ï¿½<ï¿½

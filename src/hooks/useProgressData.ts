@@ -69,149 +69,152 @@ export const useProgressData = (): UseProgressDataResult => {
     setError(null);
 
     try {
-      // Usar datos reales del usuario directamente
+      console.log('👤 Loading ONLY REAL progress data for user:', user.id);
+      
+      // SOLO USAR DATOS REALES - NO MAS FAKE DATA
       const userProgress: UserProgress = {
         totalCompleted: user.content_completed || 0,
-        totalTimeSpent: user.total_time_spent || 0,
-        averageScore: 85, // Default por ahora
+        totalTimeSpent: Math.floor((user.total_time_spent || 0) / 60), // Convert to minutes
+        averageScore: 0, // Will be calculated from real interactions
         currentStreak: user.current_streak || 0,
-        bestStreak: user.best_streak || 0,
+        bestStreak: user.best_streak || user.current_streak || 0,
         level: user.level || 1,
         points: user.points || 0,
-        completedToday: 0, // Se calculará con queries específicas después
-        weeklyGoal: (user.learning_goal || 15) * 7,
+        completedToday: 0,
+        weeklyGoal: 7, // 7 articles per week
         weeklyProgress: 0,
       };
 
-        // Generate weekly stats basados en el usuario actual
-        const weeklyStatsData: WeeklyStats[] = [];
-        const daysOfWeek = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-        
-        for (let i = 0; i < 7; i++) {
-          // Crear datos semi-realistas basados en el progreso del usuario
-          const baseActivity = Math.max(0, userProgress.level - 1);
-          const dayActivity = Math.floor(Math.random() * (baseActivity + 2));
-          
-          weeklyStatsData.push({
-            day: daysOfWeek[i],
-            completed: dayActivity,
-            timeSpent: dayActivity * (5 + Math.floor(Math.random() * 15)), // 5-20 min por item
-            points: dayActivity * (10 + Math.floor(Math.random() * 20)), // 10-30 puntos por item
-          });
-        }
+      console.log('📈 REAL user progress (no fake data):', userProgress);
 
-        // Calculate weekly progress
-        const weeklyTimeSpent = weeklyStatsData.reduce((sum, day) => sum + day.timeSpent, 0);
-        userProgress.weeklyProgress = Math.min((weeklyTimeSpent / userProgress.weeklyGoal) * 100, 100);
+      // WEEKLY STATS - SOLO DATOS REALES O VACIOS
+      const weeklyStatsData: WeeklyStats[] = [
+        { day: 'Lun', completed: 0, timeSpent: 0, points: 0 },
+        { day: 'Mar', completed: 0, timeSpent: 0, points: 0 },
+        { day: 'Mié', completed: 0, timeSpent: 0, points: 0 },
+        { day: 'Jue', completed: 0, timeSpent: 0, points: 0 },
+        { day: 'Vie', completed: 0, timeSpent: 0, points: 0 },
+        { day: 'Sáb', completed: 0, timeSpent: 0, points: 0 },
+        { day: 'Dom', completed: 0, timeSpent: 0, points: 0 },
+      ];
 
-      setProgress(userProgress);
-      setWeeklyStats(weeklyStatsData);
-
-      // Generate category progress basado en el nivel del usuario
+      // CATEGORY PROGRESS - SOLO DATOS REALES O VACIOS  
       const categories = ['arte', 'historia', 'musica', 'literatura', 'gastronomia'];
-      const categoryProgressData: CategoryProgress[] = categories.map(category => {
-        const userInterest = user.preferred_categories?.includes(category) ? 2 : 1;
-        const completed = Math.floor((userProgress.level * userInterest) + Math.random() * 5);
-        
-        return {
-          category,
-          completed: Math.max(0, completed),
-          totalTime: completed * (8 + Math.floor(Math.random() * 12)), // 8-20 min por item
-          averageScore: Math.floor(Math.random() * 20) + 75, // 75-95%
-          lastActivity: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-        };
-      });
+      const categoryProgressData: CategoryProgress[] = categories.map(category => ({
+        category,
+        completed: 0,
+        totalTime: 0,
+        averageScore: 0,
+        lastActivity: new Date().toISOString(),
+      }));
 
-      setCategoryProgress(categoryProgressData);
-
-        // Generate achievements (mock data)
-        const mockAchievements: Achievement[] = [
-          {
-            id: '1',
-            type: 'streak',
-            name: 'Estudiante Constante',
-            description: 'Completa contenido 3 días seguidos',
-            icon: '🔥',
-            points: 50,
-            unlockedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            isNew: false,
-          },
-          {
-            id: '2',
-            type: 'category',
-            name: 'Amante del Arte',
-            description: 'Completa 10 contenidos de arte',
-            icon: '🎨',
-            points: 100,
-            unlockedAt: new Date().toISOString(),
-            isNew: true,
-          },
-          {
-            id: '3',
-            type: 'points',
-            name: 'Coleccionista',
-            description: 'Acumula 500 puntos',
-            icon: '💎',
-            points: 150,
-            unlockedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-            isNew: false,
-          },
-        ];
-
-      // Generate achievements basado en el progreso real
-      const dynamicAchievements: Achievement[] = [];
+      // ACHIEVEMENTS - SOLO BASADOS EN DATOS REALES
+      const realAchievements: Achievement[] = [];
       
-      if (userProgress.currentStreak >= 3) {
-        dynamicAchievements.push({
-          id: '1',
-          type: 'streak',
-          name: 'Estudiante Constante',
-          description: `Racha de ${userProgress.currentStreak} días`,
-          icon: '🔥',
+      // Achievement por puntos reales
+      if (userProgress.points >= 50) {
+        realAchievements.push({
+          id: 'points_50',
+          type: 'points',
+          name: 'Primer Coleccionista',
+          description: `¡Has ganado ${userProgress.points} puntos!`,
+          icon: '🎯',
           points: 50,
-          unlockedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          isNew: false,
+          unlockedAt: new Date().toISOString(),
+          isNew: userProgress.points >= 50 && userProgress.points < 100,
         });
       }
       
       if (userProgress.points >= 100) {
-        dynamicAchievements.push({
-          id: '2',
+        realAchievements.push({
+          id: 'points_100',
           type: 'points',
-          name: 'Coleccionista',
-          description: `${userProgress.points} puntos acumulados`,
+          name: 'Coleccionista Avanzado',
+          description: `¡Increíble! ${userProgress.points} puntos acumulados`,
           icon: '💎',
-          points: 150,
-          unlockedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          isNew: userProgress.points >= 500,
+          points: 100,
+          unlockedAt: new Date().toISOString(),
+          isNew: userProgress.points >= 100 && userProgress.points < 200,
         });
       }
       
+      // Achievement por nivel real
       if (userProgress.level >= 2) {
-        dynamicAchievements.push({
-          id: '3',
+        realAchievements.push({
+          id: 'level_2',
           type: 'level',
           name: 'Subiendo de Nivel',
-          description: `Nivel ${userProgress.level} alcanzado`,
+          description: `¡Nivel ${userProgress.level} alcanzado!`,
           icon: '⭐',
-          points: 100,
+          points: userProgress.level * 25,
           unlockedAt: new Date().toISOString(),
           isNew: true,
         });
       }
       
-      setAchievements(dynamicAchievements);
+      // Achievement por contenido completado real
+      if (userProgress.totalCompleted >= 1) {
+        realAchievements.push({
+          id: 'first_complete',
+          type: 'completion',
+          name: 'Primera Lectura',
+          description: `¡Has completado ${userProgress.totalCompleted} contenidos!`,
+          icon: '📚',
+          points: 25,
+          unlockedAt: new Date().toISOString(),
+          isNew: userProgress.totalCompleted === 1,
+        });
+      }
 
-      // Load recent content - simplificado por ahora
+      if (userProgress.totalCompleted >= 5) {
+        realAchievements.push({
+          id: 'five_complete',
+          type: 'completion',
+          name: 'Lector Dedicado',
+          description: `${userProgress.totalCompleted} artículos completados`,
+          icon: '🎓',
+          points: 75,
+          unlockedAt: new Date().toISOString(),
+          isNew: userProgress.totalCompleted >= 5 && userProgress.totalCompleted < 10,
+        });
+      }
+      
+      // Achievement por racha real
+      if (userProgress.currentStreak >= 3) {
+        realAchievements.push({
+          id: 'streak_3',
+          type: 'streak',
+          name: 'Estudiante Constante',
+          description: `¡Racha de ${userProgress.currentStreak} días!`,
+          icon: '🔥',
+          points: 50,
+          unlockedAt: new Date().toISOString(),
+          isNew: userProgress.currentStreak === 3,
+        });
+      }
+
+      console.log('🏆 REAL achievements (only based on user data):', realAchievements);
+
+      // Cargar contenido reciente real
+      let realRecentContent: ContentItem[] = [];
       try {
         const trendingResponse = await contentService.getTrendingContent('24h');
         if (trendingResponse.success && trendingResponse.data) {
-          setRecentContent(trendingResponse.data.slice(0, 5));
+          realRecentContent = trendingResponse.data.slice(0, 5);
+          console.log('📰 REAL recent content loaded:', realRecentContent.length);
         }
       } catch (err) {
         console.warn('Could not load recent content:', err);
-        setRecentContent([]);
       }
+
+      // SET ONLY REAL DATA
+      setProgress(userProgress);
+      setWeeklyStats(weeklyStatsData);
+      setCategoryProgress(categoryProgressData);
+      setAchievements(realAchievements);
+      setRecentContent(realRecentContent);
+
+      console.log('✅ ALL DATA SET - ONLY REAL VALUES, NO FAKE DATA');
 
     } catch (err) {
       setError('Error loading progress data');
@@ -243,10 +246,10 @@ export const useProgressData = (): UseProgressDataResult => {
   };
 };
 
-// Hook for tracking daily progress
+// Hook for tracking daily progress - SOLO DATOS REALES
 export const useDailyProgress = () => {
   const { user } = useAuth();
-  const [dailyGoal] = useState(15); // 15 minutes daily goal
+  const [dailyGoal] = useState(2); // 2 articles daily goal 
   const [progress, setProgress] = useState({
     timeSpent: 0,
     completed: 0,
@@ -261,13 +264,13 @@ export const useDailyProgress = () => {
     }));
   }, []);
 
-  const progressPercentage = Math.min((progress.timeSpent / dailyGoal) * 100, 100);
+  const progressPercentage = Math.min((progress.completed / dailyGoal) * 100, 100);
 
   return {
     dailyGoal,
     progress,
     progressPercentage,
     updateDailyProgress,
-    isGoalReached: progress.timeSpent >= dailyGoal,
+    isGoalReached: progress.completed >= dailyGoal,
   };
 };

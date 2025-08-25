@@ -7,15 +7,29 @@ import {
   Image,
   TouchableOpacity,
   Switch,
+  ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { Card, Icon, Button } from '../../components/ui';
 import { StreakCounter, LevelProgress } from '../../components/gamification';
-import { mockUser } from '../../data/mockData';
+import { useAuth } from '../../contexts/AuthContext';
+import { useProgressData } from '../../hooks/useProgressData';
 
 export const ProfileScreen: React.FC = () => {
   const { theme, themeMode, toggleTheme } = useTheme();
-  const user = mockUser;
+  const { user } = useAuth();
+  const { progress, loading } = useProgressData();
+
+  if (loading || !user || !progress) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
+          Cargando perfil...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
@@ -26,7 +40,9 @@ export const ProfileScreen: React.FC = () => {
       <Card style={styles.header}>
         <View style={styles.profileInfo}>
           <Image
-            source={{ uri: user.avatar }}
+            source={{ 
+              uri: user.avatar_url || `https://ui-avatars.com/api/?name=${user.name}&background=4f46e5&color=fff&size=100`
+            }}
             style={styles.avatar}
           />
           <View style={styles.userInfo}>
@@ -39,7 +55,7 @@ export const ProfileScreen: React.FC = () => {
             <View style={styles.userStats}>
               <View style={styles.statItem}>
                 <Text style={[styles.statValue, { color: theme.colors.primary }]}>
-                  {user.progress.totalPoints}
+                  {progress.points}
                 </Text>
                 <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
                   Puntos
@@ -47,7 +63,7 @@ export const ProfileScreen: React.FC = () => {
               </View>
               <View style={styles.statItem}>
                 <Text style={[styles.statValue, { color: theme.colors.primary }]}>
-                  {user.progress.cardsCompleted}
+                  {progress.totalCompleted}
                 </Text>
                 <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
                   Tarjetas
@@ -55,7 +71,7 @@ export const ProfileScreen: React.FC = () => {
               </View>
               <View style={styles.statItem}>
                 <Text style={[styles.statValue, { color: theme.colors.primary }]}>
-                  {user.progress.level}
+                  {progress.level}
                 </Text>
                 <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
                   Nivel
@@ -69,15 +85,15 @@ export const ProfileScreen: React.FC = () => {
       {/* Progress Cards */}
       <View style={styles.section}>
         <StreakCounter
-          currentStreak={user.progress.currentStreak}
-          longestStreak={user.progress.longestStreak}
+          currentStreak={progress.currentStreak}
+          longestStreak={progress.bestStreak}
         />
       </View>
 
       <View style={styles.section}>
         <LevelProgress
-          currentLevel={user.progress.level}
-          currentPoints={user.progress.totalPoints}
+          currentLevel={progress.level}
+          currentPoints={progress.points}
         />
       </View>
 
@@ -98,7 +114,6 @@ export const ProfileScreen: React.FC = () => {
             value={themeMode === 'dark'}
             onValueChange={toggleTheme}
             trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
-            thumbColor="#fff"
           />
         </View>
 
@@ -136,7 +151,7 @@ export const ProfileScreen: React.FC = () => {
           </View>
           <View style={styles.settingValue}>
             <Text style={[styles.settingValueText, { color: theme.colors.textSecondary }]}>
-              {user.preferences.dailyGoal} tarjetas
+              3 tarjetas
             </Text>
             <Icon name="chevron-forward" size={20} color={theme.colors.textSecondary} />
           </View>
@@ -151,10 +166,11 @@ export const ProfileScreen: React.FC = () => {
           variant="outline"
           style={styles.actionButton}
         />
+        
         <Button
-          title="Compartir Perfil"
+          title="Cerrar Sesión"
           onPress={() => {}}
-          variant="ghost"
+          variant="outline"
           style={styles.actionButton}
         />
       </View>
@@ -169,8 +185,17 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+  },
   header: {
     marginBottom: 16,
+    padding: 20,
   },
   profileInfo: {
     flexDirection: 'row',

@@ -5,22 +5,28 @@ import {
   StyleSheet,
   ScrollView,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { Card } from '../../components/ui';
 import { StreakCounter, LevelProgress, AchievementCard } from '../../components/gamification';
-import { mockUser, categories } from '../../data/mockData';
+import { useProgressData } from '../../hooks/useProgressData';
 import { categoryColors } from '../../theme/colors';
 
 export const ProgressScreen: React.FC = () => {
   const { theme } = useTheme();
-  const user = mockUser;
+  const { 
+    progress, 
+    weeklyStats, 
+    categoryProgress, 
+    achievements, 
+    loading, 
+    error 
+  } = useProgressData();
 
-  const CategoryProgress = ({ category }: { category: any }) => {
-    // Simulate progress for each category
-    const completed = Math.floor(Math.random() * 20) + 5;
-    const total = 25;
-    const progress = completed / total;
+  const CategoryProgressItem = ({ categoryData }: { categoryData: any }) => {
+    const progressPercent = categoryData.completed > 0 ? 
+      Math.min((categoryData.completed / 25) * 100, 100) : 0;
 
     return (
       <Card style={styles.categoryCard}>
@@ -28,22 +34,22 @@ export const ProgressScreen: React.FC = () => {
           <View
             style={[
               styles.categoryIcon,
-              { backgroundColor: categoryColors[category.id as keyof typeof categoryColors] }
+              { backgroundColor: categoryColors[categoryData.category as keyof typeof categoryColors] || theme.colors.primary }
             ]}
           >
-            <Text style={styles.categoryIconText}>{category.name[0]}</Text>
+            <Text style={styles.categoryIconText}>{categoryData.category[0].toUpperCase()}</Text>
           </View>
           <View style={styles.categoryInfo}>
             <Text style={[styles.categoryName, { color: theme.colors.text }]}>
-              {category.name}
+              {categoryData.category.charAt(0).toUpperCase() + categoryData.category.slice(1)}
             </Text>
             <Text style={[styles.categoryProgress, { color: theme.colors.textSecondary }]}>
-              {completed}/{total} completadas
+              {categoryData.completed}/25 completadas
             </Text>
           </View>
           <View style={styles.categoryStats}>
-            <Text style={[styles.categoryPercentage, { color: categoryColors[category.id as keyof typeof categoryColors] }]}>
-              {Math.round(progress * 100)}%
+            <Text style={[styles.categoryPercentage, { color: categoryColors[categoryData.category as keyof typeof categoryColors] || theme.colors.primary }]}>
+              {Math.round(progressPercent)}%
             </Text>
           </View>
         </View>
@@ -57,8 +63,8 @@ export const ProgressScreen: React.FC = () => {
             style={[
               styles.categoryProgressFill,
               {
-                width: `${progress * 100}%`,
-                backgroundColor: categoryColors[category.id as keyof typeof categoryColors],
+                width: `${progressPercent}%`,
+                backgroundColor: categoryColors[categoryData.category as keyof typeof categoryColors] || theme.colors.primary,
               }
             ]}
           />
@@ -70,6 +76,27 @@ export const ProgressScreen: React.FC = () => {
   const renderAchievement = ({ item }: { item: any }) => (
     <AchievementCard achievement={item} size="small" />
   );
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
+          Cargando tu progreso...
+        </Text>
+      </View>
+    );
+  }
+
+  if (!progress) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
+        <Text style={[styles.errorText, { color: theme.colors.text }]}>
+          No se pudo cargar el progreso
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
@@ -84,7 +111,7 @@ export const ProgressScreen: React.FC = () => {
         <View style={styles.statsGrid}>
           <View style={styles.statBox}>
             <Text style={[styles.statNumber, { color: theme.colors.primary }]}>
-              {user.progress.cardsCompleted}
+              {progress.totalCompleted}
             </Text>
             <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
               Tarjetas completadas
@@ -92,7 +119,7 @@ export const ProgressScreen: React.FC = () => {
           </View>
           <View style={styles.statBox}>
             <Text style={[styles.statNumber, { color: theme.colors.success }]}>
-              {Math.round((user.progress.cardsCompleted / 150) * 100)}%
+              {progress.totalCompleted > 0 ? Math.round((progress.totalCompleted / progress.weeklyGoal) * 100) : 0}%
             </Text>
             <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
               Progreso total
@@ -104,15 +131,15 @@ export const ProgressScreen: React.FC = () => {
       {/* Streak and Level */}
       <View style={styles.section}>
         <StreakCounter
-          currentStreak={user.progress.currentStreak}
-          longestStreak={user.progress.longestStreak}
+          currentStreak={progress.currentStreak}
+          longestStreak={progress.bestStreak}
         />
       </View>
 
       <View style={styles.section}>
         <LevelProgress
-          currentLevel={user.progress.level}
-          currentPoints={user.progress.totalPoints}
+          currentLevel={progress.level}
+          currentPoints={progress.points}
         />
       </View>
 
@@ -122,8 +149,8 @@ export const ProgressScreen: React.FC = () => {
           Progreso por Categoría
         </Text>
         <View style={styles.categoriesContainer}>
-          {categories.map((category) => (
-            <CategoryProgress key={category.id} category={category} />
+          {categoryProgress.map((categoryData, index) => (
+            <CategoryProgressItem key={index} categoryData={categoryData} />
           ))}
         </View>
       </View>
@@ -133,14 +160,22 @@ export const ProgressScreen: React.FC = () => {
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           Logros
         </Text>
-        <FlatList
-          data={user.progress.achievements}
-          renderItem={renderAchievement}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.achievementsList}
-        />
+        {achievements.length > 0 ? (
+          <FlatList
+            data={achievements}
+            renderItem={renderAchievement}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.achievementsList}
+          />
+        ) : (
+          <Card style={styles.noAchievements}>
+            <Text style={[styles.noAchievementsText, { color: theme.colors.textSecondary }]}>
+              ¡Completa algunos artículos para ganar tus primeros logros! 🎯
+            </Text>
+          </Card>
+        )}
       </View>
 
       <View style={styles.bottomSpacer} />
@@ -239,5 +274,26 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 100,
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+  },
+  errorText: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  noAchievements: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  noAchievementsText: {
+    fontSize: 16,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });

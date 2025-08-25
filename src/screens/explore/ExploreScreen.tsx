@@ -9,6 +9,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { Card, Icon } from '../../components/ui';
 import { useExploreContent, useFeaturedContent, EXPLORE_CATEGORIES } from '../../hooks/useExploreContent';
@@ -16,6 +17,7 @@ import { useContentSearch } from '../../hooks/useContent';
 
 export const ExploreScreen: React.FC = () => {
   const { theme } = useTheme();
+  const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -112,8 +114,16 @@ export const ExploreScreen: React.FC = () => {
   const CardPreview = ({ card }: { card: any }) => {
     const categoryInfo = categories.find(cat => cat.id === card.category);
     
+    const handleCardPress = () => {
+      const contentData = {
+        contentId: card.id,
+        content: card,
+      };
+      navigation.navigate('content-detail' as never, contentData as never);
+    };
+    
     return (
-      <TouchableOpacity style={styles.cardPreview} activeOpacity={0.8}>
+      <TouchableOpacity style={styles.cardPreview} activeOpacity={0.8} onPress={handleCardPress}>
         <Card style={styles.previewCard}>
           <View style={styles.previewHeader}>
             <View
