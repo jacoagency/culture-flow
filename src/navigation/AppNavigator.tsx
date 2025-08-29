@@ -5,6 +5,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../hooks/useTheme';
 import { TabBar } from '../components/navigation';
 import { DashboardScreen, TemasScreen, ConfiguracionesScreen, ProfileScreen } from '../screens';
+import { ThemeDetailScreen } from '../screens/theme-detail';
+import { SubtopicDetailScreen } from '../screens/subtopic-detail';
 import { ContentDetailScreen } from '../screens/content/ContentDetailScreen';
 
 const Tab = createBottomTabNavigator();
@@ -71,6 +73,22 @@ export const AppNavigator: React.FC = () => {
     >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="main" component={TabNavigator} />
+        <Stack.Screen 
+          name="theme-detail" 
+          component={ThemeDetailScreen}
+          options={{
+            headerShown: true,
+            headerTitle: '',
+            headerBackTitle: 'Atrás',
+          }}
+        />
+        <Stack.Screen 
+          name="subtopic-detail" 
+          component={SubtopicDetailScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
         <Stack.Screen 
           name="content-detail" 
           component={ContentDetailScreen}

@@ -144,9 +144,7 @@ export const TemasScreen: React.FC = () => {
   };
 
   const handleThemePress = (theme: Theme) => {
-    // Navigate to theme detail or content list
-    // For now, we'll navigate to explore content filtered by theme
-    // navigation.navigate('theme-detail', { themeId: theme.id });
+    navigation.navigate('theme-detail' as never, { themeId: theme.id } as never);
   };
 
   const filters = [
@@ -180,36 +178,49 @@ export const TemasScreen: React.FC = () => {
         </View>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filtersContainer}
-        contentContainerStyle={styles.filtersContent}
-      >
-        {filters.map((filter) => (
-          <TouchableOpacity
-            key={filter.key}
-            style={[
-              styles.filterChip,
-              { borderColor: theme.colors.border },
-              activeFilter === filter.key && {
-                backgroundColor: theme.colors.primary,
-                borderColor: theme.colors.primary,
-              },
-            ]}
-            onPress={() => setActiveFilter(filter.key)}
-          >
-            <Text
+      <View style={styles.filtersContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersContent}
+        >
+          {filters.map((filter) => (
+            <TouchableOpacity
+              key={filter.key}
               style={[
-                styles.filterChipText,
-                { color: activeFilter === filter.key ? '#fff' : theme.colors.text },
+                styles.filterChip,
+                { 
+                  backgroundColor: activeFilter === filter.key ? theme.colors.primary : theme.colors.card,
+                  borderColor: activeFilter === filter.key ? theme.colors.primary : theme.colors.border,
+                },
               ]}
+              onPress={() => setActiveFilter(filter.key)}
             >
-              {filter.label} ({filter.count})
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              <Text
+                style={[
+                  styles.filterChipText,
+                  { color: activeFilter === filter.key ? '#fff' : theme.colors.text },
+                ]}
+              >
+                {filter.label}
+              </Text>
+              <View style={[
+                styles.filterCount,
+                { 
+                  backgroundColor: activeFilter === filter.key ? 'rgba(255,255,255,0.3)' : theme.colors.primary + '20'
+                }
+              ]}>
+                <Text style={[
+                  styles.filterCountText,
+                  { color: activeFilter === filter.key ? '#fff' : theme.colors.primary }
+                ]}>
+                  {filter.count}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       <ScrollView
         style={styles.themesContainer}
@@ -342,22 +353,38 @@ const styles = StyleSheet.create({
   },
   filtersContainer: {
     marginBottom: 16,
+    height: 44,
   },
   filtersContent: {
     paddingHorizontal: 20,
-    gap: 8,
+    gap: 12,
+    alignItems: 'center',
   },
   filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 22,
     borderWidth: 1,
-    minWidth: 80,
-    alignItems: 'center',
+    gap: 8,
+    height: 36,
   },
   filterChipText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
+  },
+  filterCount: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    minWidth: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterCountText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   themesContainer: {
     flex: 1,

@@ -10,7 +10,8 @@ import {
 import { useTheme } from '../../hooks/useTheme';
 
 interface ButtonProps {
-  title: string;
+  title?: string;
+  children?: React.ReactNode;
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'small' | 'medium' | 'large';
@@ -22,6 +23,7 @@ interface ButtonProps {
 
 export const Button: React.FC<ButtonProps> = ({
   title,
+  children,
   onPress,
   variant = 'primary',
   size = 'medium',
@@ -98,7 +100,7 @@ export const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <ActivityIndicator color={getTextColor()} />
       ) : (
-        <Text style={textStyles}>{title}</Text>
+        children || <Text style={textStyles}>{title}</Text>
       )}
     </TouchableOpacity>
   );

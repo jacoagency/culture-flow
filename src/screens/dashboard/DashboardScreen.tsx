@@ -270,7 +270,10 @@ export const DashboardScreen: React.FC = () => {
         <Text style={[styles.sectionDescription, { color: theme.colors.textSecondary }]}>
           Explora contenido personalizado basado en tus intereses y progreso
         </Text>
-        <Button style={styles.exploreButton}>
+        <Button 
+          style={styles.exploreButton}
+          onPress={() => {/* Navigate to themes */}}
+        >
           Explorar contenido
         </Button>
       </Card>
