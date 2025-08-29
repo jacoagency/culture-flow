@@ -1,4 +1,4 @@
-export * from './feed';
-export * from './explore';
-export * from './progress';
+export * from './dashboard';
+export * from './temas';
+export * from './configuraciones';
 export * from './profile';

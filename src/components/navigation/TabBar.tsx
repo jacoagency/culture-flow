@@ -10,9 +10,9 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const tabIcons = {
-  feed: 'home',
-  explore: 'compass',
-  progress: 'stats-chart',
+  dashboard: 'grid',
+  temas: 'book',
+  configuraciones: 'settings',
   profile: 'person',
 } as const;
 

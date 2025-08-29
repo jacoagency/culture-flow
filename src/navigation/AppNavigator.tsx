@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../hooks/useTheme';
 import { TabBar } from '../components/navigation';
-import { FeedScreen, ExploreScreen, ProgressScreen, ProfileScreen } from '../screens';
+import { DashboardScreen, TemasScreen, ConfiguracionesScreen, ProfileScreen } from '../screens';
 import { ContentDetailScreen } from '../screens/content/ContentDetailScreen';
 
 const Tab = createBottomTabNavigator();
@@ -18,27 +18,27 @@ const TabNavigator = () => {
       screenOptions={{
         headerShown: false,
       }}
-      initialRouteName="feed"
+      initialRouteName="dashboard"
     >
       <Tab.Screen
-        name="feed"
-        component={FeedScreen}
+        name="dashboard"
+        component={DashboardScreen}
         options={{
-          tabBarLabel: 'Feed',
+          tabBarLabel: 'Dashboard',
         }}
       />
       <Tab.Screen
-        name="explore"
-        component={ExploreScreen}
+        name="temas"
+        component={TemasScreen}
         options={{
-          tabBarLabel: 'Explorar',
+          tabBarLabel: 'Temas',
         }}
       />
       <Tab.Screen
-        name="progress"
-        component={ProgressScreen}
+        name="configuraciones"
+        component={ConfiguracionesScreen}
         options={{
-          tabBarLabel: 'Progreso',
+          tabBarLabel: 'Config',
         }}
       />
       <Tab.Screen
