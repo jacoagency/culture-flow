@@ -79,20 +79,48 @@ export const ProfileScreen: React.FC = () => {
         .eq('user_id', user.id)
         .order('unlocked_at', { ascending: false });
 
-      // Get theme progress
-      const { data: themeProgressData } = await supabase
-        .from('user_theme_progress')
+      // Get real theme progress from subtopic completions
+      const { data: themesData } = await supabase
+        .from('personal_development_themes')
         .select(`
           *,
-          personal_development_themes (
-            name,
-            color,
-            icon
-          )
+          theme_subtopics (count)
         `)
-        .eq('user_id', user.id)
-        .order('experience_points', { ascending: false })
-        .limit(3);
+        .order('order_index');
+
+      // Get user subtopic progress
+      const { data: subtopicProgress } = await supabase
+        .from('user_subtopic_progress')
+        .select(`
+          subtopic_id,
+          status,
+          theme_subtopics!inner(theme_id)
+        `)
+        .eq('user_id', user.id);
+
+      // Calculate theme progress
+      const themeProgressData = themesData?.map(themeData => {
+        const completedSubtopics = subtopicProgress?.filter(sp => 
+          sp.theme_subtopics.theme_id === themeData.id && sp.status === 'completed'
+        ).length || 0;
+        
+        const experiencePoints = completedSubtopics * 10;
+        const level = Math.floor(experiencePoints / 100) + 1;
+        
+        return {
+          theme_id: themeData.id,
+          level,
+          experience_points: experiencePoints,
+          content_completed: completedSubtopics,
+          personal_development_themes: {
+            name: themeData.name,
+            icon: themeData.icon,
+            color: themeData.color
+          }
+        };
+      }).filter(tp => tp.experience_points > 0)
+        .sort((a, b) => b.experience_points - a.experience_points)
+        .slice(0, 3) || [];
 
       setProfile({
         id: profileData.id,
@@ -286,7 +314,7 @@ export const ProfileScreen: React.FC = () => {
             </Text>
           </View>
           <View style={styles.streakItem}>
-            <Icon name="clock" size={32} color={theme.colors.primary} />
+            <Icon name="time" size={32} color={theme.colors.primary} />
             <Text style={[styles.streakValue, { color: theme.colors.text }]}>
               {Math.round(profile.total_time_spent / 60)}
             </Text>

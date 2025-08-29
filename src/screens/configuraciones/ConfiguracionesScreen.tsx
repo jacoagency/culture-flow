@@ -60,35 +60,48 @@ export const ConfiguracionesScreen: React.FC = () => {
         });
       }
 
-      // Get theme progress with theme details
-      const { data: progressData } = await supabase
-        .from('user_theme_progress')
+      // Get real theme progress from subtopic completions
+      const { data: themesData } = await supabase
+        .from('personal_development_themes')
         .select(`
           *,
-          personal_development_themes (
-            name,
-            icon,
-            color
-          )
+          theme_subtopics (count)
         `)
-        .eq('user_id', user.id)
-        .order('experience_points', { ascending: false });
+        .order('order_index');
 
-      const formattedProgress = progressData?.map(tp => {
-        const maxXP = Math.pow(tp.level, 2) * 100; // Exponential XP requirement
-        const progress_percentage = (tp.experience_points / maxXP) * 100;
+      // Get user subtopic progress
+      const { data: subtopicProgress } = await supabase
+        .from('user_subtopic_progress')
+        .select(`
+          subtopic_id,
+          status,
+          theme_subtopics!inner(theme_id)
+        `)
+        .eq('user_id', user.id);
+
+      // Calculate theme progress
+      const formattedProgress = themesData?.map(themeData => {
+        const totalSubtopics = themeData.theme_subtopics?.[0]?.count || 0;
+        const completedSubtopics = subtopicProgress?.filter(sp => 
+          sp.theme_subtopics.theme_id === themeData.id && sp.status === 'completed'
+        ).length || 0;
+        
+        const experiencePoints = completedSubtopics * 10;
+        const level = Math.floor(experiencePoints / 100) + 1;
+        const progress_percentage = totalSubtopics > 0 ? (completedSubtopics / totalSubtopics) * 100 : 0;
         
         return {
-          id: tp.theme_id,
-          name: tp.personal_development_themes.name,
-          icon: tp.personal_development_themes.icon,
-          color: tp.personal_development_themes.color,
-          level: tp.level,
-          experience_points: tp.experience_points,
-          content_completed: tp.content_completed,
+          id: themeData.id,
+          name: themeData.name,
+          icon: themeData.icon,
+          color: themeData.color,
+          level,
+          experience_points: experiencePoints,
+          content_completed: completedSubtopics,
           progress_percentage: Math.min(progress_percentage, 100),
         };
-      }) || [];
+      }).filter(tp => tp.experience_points > 0)
+        .sort((a, b) => b.experience_points - a.experience_points) || [];
 
       setThemeProgress(formattedProgress);
     } catch (error) {

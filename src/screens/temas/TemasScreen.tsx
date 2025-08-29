@@ -43,34 +43,62 @@ export const TemasScreen: React.FC = () => {
 
   const fetchThemes = async () => {
     try {
-      // Get all themes with content count
+      if (!user?.id) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Get all themes with subtopic count
       const { data: themesData } = await supabase
         .from('personal_development_themes')
         .select(`
           *,
-          cultural_content (count)
+          theme_subtopics (count)
         `)
         .order('order_index');
 
-      // Get user progress for themes
-      const { data: progressData } = await supabase
-        .from('user_theme_progress')
-        .select('*')
-        .eq('user_id', user?.id || '');
+      // Get user subtopic progress to calculate theme progress
+      const { data: subtopicProgress } = await supabase
+        .from('user_subtopic_progress')
+        .select(`
+          subtopic_id,
+          status,
+          theme_subtopics!inner(theme_id)
+        `)
+        .eq('user_id', user.id);
 
-      const themesWithProgress = themesData?.map(themeData => ({
-        id: themeData.id,
-        name: themeData.name,
-        description: themeData.description,
-        icon: themeData.icon,
-        color: themeData.color,
-        progress: progressData?.find(p => p.theme_id === themeData.id) || {
-          level: 1,
-          experience_points: 0,
-          content_completed: 0,
-        },
-        contentCount: themeData.cultural_content?.[0]?.count || 0,
-      })) || [];
+      const themesWithProgress = themesData?.map(themeData => {
+        const totalSubtopics = themeData.theme_subtopics?.[0]?.count || 0;
+        
+        // Count completed subtopics for this theme
+        const completedSubtopics = subtopicProgress?.filter(sp => 
+          sp.theme_subtopics.theme_id === themeData.id && sp.status === 'completed'
+        ).length || 0;
+        
+        // Calculate experience points (10 XP per completed subtopic)
+        const experiencePoints = completedSubtopics * 10;
+        
+        // Calculate level (every 100 XP = 1 level, starting from level 1)
+        const level = Math.floor(experiencePoints / 100) + 1;
+        
+        const progress = experiencePoints > 0 ? {
+          level,
+          experience_points: experiencePoints,
+          content_completed: completedSubtopics,
+          total_content: totalSubtopics,
+          theme_id: themeData.id
+        } : null;
+
+        return {
+          id: themeData.id,
+          name: themeData.name,
+          description: themeData.description,
+          icon: themeData.icon,
+          color: themeData.color,
+          progress,
+          contentCount: totalSubtopics,
+        };
+      }) || [];
 
       setThemes(themesWithProgress);
       setFilteredThemes(themesWithProgress);
@@ -104,19 +132,22 @@ export const TemasScreen: React.FC = () => {
     // Apply status filter
     switch (activeFilter) {
       case 'in_progress':
-        filtered = filtered.filter(theme => 
-          theme.progress && theme.progress.experience_points > 0 && theme.progress.level < 10
-        );
+        filtered = filtered.filter(theme => {
+          const percentage = getProgressPercentage(theme.progress);
+          return percentage > 0 && percentage < 100;
+        });
         break;
       case 'completed':
-        filtered = filtered.filter(theme => 
-          theme.progress && theme.progress.level >= 10
-        );
+        filtered = filtered.filter(theme => {
+          const percentage = getProgressPercentage(theme.progress);
+          return percentage >= 100;
+        });
         break;
       case 'not_started':
-        filtered = filtered.filter(theme => 
-          !theme.progress || theme.progress.experience_points === 0
-        );
+        filtered = filtered.filter(theme => {
+          const percentage = getProgressPercentage(theme.progress);
+          return percentage === 0;
+        });
         break;
       default:
         // 'all' - no additional filtering
@@ -132,15 +163,16 @@ export const TemasScreen: React.FC = () => {
   };
 
   const getProgressPercentage = (progress: Theme['progress']) => {
-    if (!progress) return 0;
-    // Calculate progress based on level (max level 10)
-    return Math.min((progress.level - 1) / 9 * 100, 100);
+    if (!progress || progress.experience_points === 0) return 0;
+    // Calculate progress based on content completed vs available
+    return Math.min((progress.content_completed / Math.max(progress.total_content || 1, 1)) * 100, 100);
   };
 
   const getThemeStatus = (progress: Theme['progress']) => {
     if (!progress || progress.experience_points === 0) return 'Sin iniciar';
-    if (progress.level >= 10) return 'Completado';
-    return `En progreso - Nivel ${progress.level}`;
+    const percentage = getProgressPercentage(progress);
+    if (percentage >= 100) return 'Completado';
+    return `En progreso`;
   };
 
   const handleThemePress = (theme: Theme) => {
@@ -149,9 +181,18 @@ export const TemasScreen: React.FC = () => {
 
   const filters = [
     { key: 'all' as FilterType, label: 'Todos', count: themes.length },
-    { key: 'in_progress' as FilterType, label: 'En progreso', count: themes.filter(t => t.progress && t.progress.experience_points > 0 && t.progress.level < 10).length },
-    { key: 'not_started' as FilterType, label: 'Sin iniciar', count: themes.filter(t => !t.progress || t.progress.experience_points === 0).length },
-    { key: 'completed' as FilterType, label: 'Completados', count: themes.filter(t => t.progress && t.progress.level >= 10).length },
+    { key: 'in_progress' as FilterType, label: 'En progreso', count: themes.filter(t => {
+      const percentage = getProgressPercentage(t.progress);
+      return percentage > 0 && percentage < 100;
+    }).length },
+    { key: 'not_started' as FilterType, label: 'Sin iniciar', count: themes.filter(t => {
+      const percentage = getProgressPercentage(t.progress);
+      return percentage === 0;
+    }).length },
+    { key: 'completed' as FilterType, label: 'Completados', count: themes.filter(t => {
+      const percentage = getProgressPercentage(t.progress);
+      return percentage >= 100;
+    }).length },
   ];
 
   return (
@@ -269,7 +310,7 @@ export const TemasScreen: React.FC = () => {
                 </View>
                 <View style={styles.statItem}>
                   <Text style={[styles.statValue, { color: theme.colors.text }]}>
-                    Nivel {themeItem.progress?.level || 1}
+                    {themeItem.progress?.level ? `Nivel ${themeItem.progress.level}` : 'Nivel 1'}
                   </Text>
                   <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
                     {getThemeStatus(themeItem.progress)}

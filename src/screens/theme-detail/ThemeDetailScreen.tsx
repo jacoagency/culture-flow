@@ -144,6 +144,16 @@ export const ThemeDetailScreen: React.FC = () => {
     fetchThemeDetail();
   }, [themeId, user]);
 
+  // Listen for focus event to refresh when returning from subtopic
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      // Refresh the theme detail when the screen comes into focus
+      fetchThemeDetail();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchThemeDetail();
@@ -159,7 +169,7 @@ export const ThemeDetailScreen: React.FC = () => {
   const getSubtopicStatusIcon = (status: string, quiz_passed: boolean) => {
     switch (status) {
       case 'completed':
-        return quiz_passed ? 'check-circle' : 'clock';
+        return quiz_passed ? 'check-circle' : 'time';
       case 'in_progress':
         return 'play-circle';
       default:
@@ -308,7 +318,7 @@ export const ThemeDetailScreen: React.FC = () => {
 
               <View style={styles.subtopicMeta}>
                 <View style={styles.metaItem}>
-                  <Icon name="clock" size={16} color={theme.colors.textSecondary} />
+                  <Icon name="time" size={16} color={theme.colors.textSecondary} />
                   <Text style={[styles.metaText, { color: theme.colors.textSecondary }]}>
                     {subtopic.estimated_duration} min
                   </Text>
