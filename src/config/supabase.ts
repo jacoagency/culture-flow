@@ -35,7 +35,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    // Enable URL detection for web to handle email confirmations
+    detectSessionInUrl: Platform.OS === 'web',
     // Mobile-specific configurations
     ...(Platform.OS !== 'web' && {
       storage: undefined, // Let React Native handle storage

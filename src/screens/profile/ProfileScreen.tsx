@@ -58,6 +58,7 @@ export const ProfileScreen: React.FC = () => {
   const [themeProgress, setThemeProgress] = useState<ThemeProgress[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const fetchProfileData = async () => {
     if (!user) return;
@@ -170,14 +171,17 @@ export const ProfileScreen: React.FC = () => {
   };
 
   const handleSignOut = () => {
-    Alert.alert(
-      'Cerrar sesión',
-      '¿Estás seguro de que quieres cerrar sesión?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Cerrar sesión', style: 'destructive', onPress: signOut },
-      ]
-    );
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmSignOut = async () => {
+    setShowLogoutConfirm(false);
+    console.log('Cerrando sesión desde perfil...');
+    await signOut();
+  };
+
+  const cancelSignOut = () => {
+    setShowLogoutConfirm(false);
   };
 
   const calculateNextLevelXP = (currentLevel: number) => {
@@ -190,6 +194,40 @@ export const ProfileScreen: React.FC = () => {
     const progress = (points - currentLevelMin) / (nextLevelMin - currentLevelMin);
     return Math.max(0, Math.min(1, progress));
   };
+
+  // Show logout confirmation modal
+  if (showLogoutConfirm) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
+        <Card style={styles.confirmModal}>
+          <Text style={[styles.confirmTitle, { color: theme.colors.text }]}>
+            Cerrar sesión
+          </Text>
+          <Text style={[styles.confirmMessage, { color: theme.colors.textSecondary }]}>
+            ¿Estás seguro de que quieres cerrar sesión?
+          </Text>
+          <View style={styles.confirmButtons}>
+            <TouchableOpacity 
+              style={[styles.confirmButton, styles.cancelButton, { borderColor: theme.colors.border }]}
+              onPress={cancelSignOut}
+            >
+              <Text style={[styles.cancelButtonText, { color: theme.colors.text }]}>
+                Cancelar
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.confirmButton, styles.logoutButton, { backgroundColor: theme.colors.error || '#ef4444' }]}
+              onPress={confirmSignOut}
+            >
+              <Text style={styles.logoutButtonText}>
+                Cerrar sesión
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Card>
+      </View>
+    );
+  }
 
   if (isLoading || !user || !profile) {
     return (
