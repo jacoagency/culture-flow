@@ -12,6 +12,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (userData: RegisterData) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
+  signOut: () => Promise<void>; // Alias for logout
   updateUser: (userData: Partial<User>) => Promise<void>;
   refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
@@ -180,6 +181,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     register,
     logout,
+    signOut: logout, // Alias for logout
     updateUser,
     refreshUser,
     isAuthenticated: !!user,
