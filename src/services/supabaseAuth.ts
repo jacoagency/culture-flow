@@ -50,15 +50,25 @@ export class SupabaseAuthService {
 
       console.log('✅ Signup successful for:', userData.email);
 
-      // Create user profile in our custom table
+      // Check if profile was already created by database trigger
       if (data.user) {
-        console.log('👤 Creating user profile for:', data.user.email);
-        const profileResult = await this.createUserProfile(data.user, userData);
-        if (!profileResult.success) {
-          console.error('❌ Profile creation failed:', profileResult.error);
-          // Don't fail the signup, but log the error
+        console.log('👤 Checking if user profile exists for:', data.user.email);
+        
+        // Wait a bit for trigger to complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const existingProfile = await this.getUserProfile(data.user.id);
+        if (existingProfile.success) {
+          console.log('✅ User profile already exists (created by trigger)');
         } else {
-          console.log('✅ User profile created successfully');
+          console.log('👤 Creating user profile manually for:', data.user.email);
+          const profileResult = await this.createUserProfile(data.user, userData);
+          if (!profileResult.success) {
+            console.error('❌ Profile creation failed:', profileResult.error);
+            console.warn('⚠️ User can still login, profile will be created on first access');
+          } else {
+            console.log('✅ User profile created successfully');
+          }
         }
       }
 
