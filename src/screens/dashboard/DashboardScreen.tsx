@@ -151,6 +151,7 @@ export const DashboardScreen: React.FC = () => {
   };
 
   const handleSurveyComplete = () => {
+    console.log('✅ Survey completed! Redirecting to dashboard...');
     fetchDashboardData();
   };
 

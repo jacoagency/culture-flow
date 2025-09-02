@@ -174,33 +174,6 @@ export const ProfileScreen: React.FC = () => {
     setShowLogoutConfirm(true);
   };
 
-  const handleEmergencyLogout = async () => {
-    console.log('🚨 EMERGENCY LOGOUT - Clearing all auth data...');
-    
-    // Clear all storage
-    if (typeof window !== 'undefined') {
-      localStorage.clear();
-      sessionStorage.clear();
-      console.log('🧹 Browser storage cleared');
-    }
-    
-    // Force logout from Supabase
-    try {
-      await supabase.auth.signOut();
-      console.log('🔓 Supabase logout forced');
-    } catch (error) {
-      console.warn('⚠️ Supabase logout failed, but continuing...');
-    }
-    
-    // Force clear auth context
-    await signOut();
-    console.log('✅ Emergency logout completed');
-    
-    // Reload page to ensure clean state
-    if (typeof window !== 'undefined') {
-      window.location.reload();
-    }
-  };
 
   const confirmSignOut = async () => {
     setShowLogoutConfirm(false);
@@ -534,13 +507,6 @@ export const ProfileScreen: React.FC = () => {
           onPress={handleSignOut}
           variant="outline"
           style={styles.actionButton}
-        />
-        
-        <Button
-          title="🚨 Logout Forzado"
-          onPress={handleEmergencyLogout}
-          variant="outline"
-          style={[styles.actionButton, { borderColor: '#ef4444' }]}
         />
       </View>
 
