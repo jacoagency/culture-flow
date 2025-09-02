@@ -52,7 +52,14 @@ export class SupabaseAuthService {
 
       // Create user profile in our custom table
       if (data.user) {
-        await this.createUserProfile(data.user, userData);
+        console.log('👤 Creating user profile for:', data.user.email);
+        const profileResult = await this.createUserProfile(data.user, userData);
+        if (!profileResult.success) {
+          console.error('❌ Profile creation failed:', profileResult.error);
+          // Don't fail the signup, but log the error
+        } else {
+          console.log('✅ User profile created successfully');
+        }
       }
 
       return { success: true, data };
@@ -141,7 +148,13 @@ export class SupabaseAuthService {
   // Create user profile
   private async createUserProfile(user: User, userData: RegisterData) {
     try {
-      const { error } = await supabase
+      console.log('🏗️ Creating profile for user:', {
+        id: user.id,
+        email: user.email,
+        name: userData.name
+      });
+
+      const { data, error } = await supabase
         .from('user_profiles')
         .insert({
           id: user.id,
@@ -157,12 +170,19 @@ export class SupabaseAuthService {
           learning_goal: 15, // 15 minutes per day default
           notifications: true,
           created_at: new Date().toISOString(),
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
-      return { success: true };
+      if (error) {
+        console.error('❌ Profile insert error:', error);
+        throw error;
+      }
+      
+      console.log('✅ Profile created:', data);
+      return { success: true, data };
     } catch (error: any) {
-      console.error('Create profile error:', error);
+      console.error('❌ Create profile error:', error.message);
       return { success: false, error: error.message };
     }
   }
@@ -170,11 +190,11 @@ export class SupabaseAuthService {
   // Get user profile
   async getUserProfile(userId: string) {
     try {
-      console.log('Getting profile for user ID:', userId);
+      console.log('🔍 Getting profile for user ID:', userId);
       
-      // Add timeout to prevent hanging
+      // Increased timeout to 15 seconds for better reliability
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000);
+        setTimeout(() => reject(new Error('Profile fetch timeout after 15s')), 15000);
       });
       
       const profilePromise = supabase
@@ -185,11 +205,15 @@ export class SupabaseAuthService {
 
       const { data, error } = await Promise.race([profilePromise, timeoutPromise]);
 
-      console.log('Profile query result:', { data: !!data, error: !!error });
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Profile query error:', error);
+        throw error;
+      }
+      
+      console.log('✅ Profile loaded successfully for:', data?.email);
       return { success: true, data };
     } catch (error: any) {
-      console.error('Get profile error:', error);
+      console.error('❌ Get profile error:', error.message);
       return { success: false, error: error.message };
     }
   }

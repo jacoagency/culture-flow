@@ -45,14 +45,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Listen for auth changes
     const { data: { subscription } } = authService.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event);
+      console.log('🔐 Auth event:', event);
       setSession(session);
       
       if (session?.user) {
-        // Get user profile
-        const profile = await authService.getUserProfile(session.user.id);
-        if (profile.success) {
-          setUser(profile.data);
+        console.log('👤 User authenticated, fetching profile...');
+        // Get user profile with better error handling
+        try {
+          const profile = await authService.getUserProfile(session.user.id);
+          if (profile.success && profile.data) {
+            console.log('✅ Profile loaded successfully');
+            setUser(profile.data);
+          } else {
+            console.warn('⚠️ Profile fetch failed, but user is authenticated');
+            // Create a basic user object from auth data if profile fails
+            setUser({
+              id: session.user.id,
+              email: session.user.email || '',
+              name: session.user.user_metadata?.name || 'Usuario',
+              points: 0,
+              level: 1,
+              current_streak: 0,
+              best_streak: 0,
+              total_time_spent: 0,
+              content_completed: 0,
+              preferred_categories: [],
+              learning_goal: 15,
+              notifications: true,
+              created_at: new Date().toISOString(),
+            });
+          }
+        } catch (error) {
+          console.error('❌ Profile fetch error, using fallback user data:', error);
+          // Create fallback user object
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata?.name || 'Usuario',
+            points: 0,
+            level: 1,
+            current_streak: 0,
+            best_streak: 0,
+            total_time_spent: 0,
+            content_completed: 0,
+            preferred_categories: [],
+            learning_goal: 15,
+            notifications: true,
+            created_at: new Date().toISOString(),
+          });
         }
       } else {
         setUser(null);
@@ -132,20 +172,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
+      console.log('🚪 Starting logout process...');
       setLoading(true);
-      const result = await authService.signOut();
       
-      if (result.success) {
-        setUser(null);
-        setSession(null);
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Still clear local state
+      // First clear local state immediately
       setUser(null);
       setSession(null);
+      
+      // Then sign out from Supabase
+      const result = await authService.signOut();
+      console.log('🚪 Supabase signOut result:', result);
+      
+      if (!result.success) {
+        console.warn('⚠️ Supabase signOut failed, but local state already cleared');
+      }
+    } catch (error) {
+      console.error('❌ Logout error:', error);
     } finally {
       setLoading(false);
+      console.log('✅ Logout process completed');
     }
   };
 

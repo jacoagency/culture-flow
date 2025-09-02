@@ -32,7 +32,7 @@ interface UserSettings {
 
 export const ConfiguracionesScreen: React.FC = () => {
   const { theme } = useTheme();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [themeProgress, setThemeProgress] = useState<ThemeProgress[]>([]);
   const [userSettings, setUserSettings] = useState<UserSettings>({
     notifications: true,
@@ -40,7 +40,6 @@ export const ConfiguracionesScreen: React.FC = () => {
     preferred_categories: [],
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const fetchData = async () => {
     if (!user) return;
@@ -134,55 +133,9 @@ export const ConfiguracionesScreen: React.FC = () => {
     }
   };
 
-  const handleSignOut = () => {
-    setShowLogoutConfirm(true);
-  };
-
-  const confirmSignOut = async () => {
-    setShowLogoutConfirm(false);
-    console.log('Cerrando sesión...');
-    await signOut();
-  };
-
-  const cancelSignOut = () => {
-    setShowLogoutConfirm(false);
-  };
 
   const goalOptions = [15, 30, 45, 60, 90];
 
-  // Show logout confirmation modal
-  if (showLogoutConfirm) {
-    return (
-      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
-        <Card style={styles.confirmModal}>
-          <Text style={[styles.confirmTitle, { color: theme.colors.text }]}>
-            Cerrar sesión
-          </Text>
-          <Text style={[styles.confirmMessage, { color: theme.colors.textSecondary }]}>
-            ¿Estás seguro de que quieres cerrar sesión?
-          </Text>
-          <View style={styles.confirmButtons}>
-            <TouchableOpacity 
-              style={[styles.confirmButton, styles.cancelButton, { borderColor: theme.colors.border }]}
-              onPress={cancelSignOut}
-            >
-              <Text style={[styles.cancelButtonText, { color: theme.colors.text }]}>
-                Cancelar
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.confirmButton, styles.logoutButton, { backgroundColor: theme.colors.error || '#ef4444' }]}
-              onPress={confirmSignOut}
-            >
-              <Text style={styles.logoutButtonText}>
-                Cerrar sesión
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </Card>
-      </View>
-    );
-  }
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -400,13 +353,6 @@ export const ConfiguracionesScreen: React.FC = () => {
           <Icon name="chevron-right" size={20} color={theme.colors.textSecondary} />
         </TouchableOpacity>
 
-        <Button
-          variant="outline"
-          onPress={handleSignOut}
-          style={styles.signOutButton}
-        >
-          Cerrar sesión
-        </Button>
       </Card>
     </ScrollView>
   );
@@ -562,59 +508,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
-  signOutButton: {
-    marginTop: 16,
-  },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-  },
-  confirmModal: {
-    width: '100%',
-    maxWidth: 400,
-    padding: 24,
-    alignItems: 'center',
-  },
-  confirmTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  confirmMessage: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  confirmButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    width: '100%',
-  },
-  confirmButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    borderWidth: 1,
-    backgroundColor: 'transparent',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  logoutButton: {
-    borderWidth: 0,
-  },
-  logoutButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
