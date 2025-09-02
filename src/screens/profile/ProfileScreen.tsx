@@ -11,6 +11,7 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { Card, Icon, Button } from '../../components/ui';
 import { useAuth } from '../../contexts/AuthContext';
@@ -164,6 +165,14 @@ export const ProfileScreen: React.FC = () => {
   useEffect(() => {
     fetchProfileData();
   }, [user]);
+
+  // Refresh profile data when screen comes into focus (after completing quizzes)
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('🔄 Profile screen focused - refreshing profile data...');
+      fetchProfileData();
+    }, [user])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);

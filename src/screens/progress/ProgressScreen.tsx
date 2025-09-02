@@ -7,6 +7,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { Card } from '../../components/ui';
 import { StreakCounter, LevelProgress, AchievementCard } from '../../components/gamification';
@@ -21,8 +22,17 @@ export const ProgressScreen: React.FC = () => {
     categoryProgress, 
     achievements, 
     loading, 
-    error 
+    error,
+    refreshProgress 
   } = useProgressData();
+
+  // Refresh progress data when screen comes into focus (after completing quizzes)
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('🔄 Progress screen focused - refreshing progress data...');
+      refreshProgress();
+    }, [refreshProgress])
+  );
 
   const CategoryProgressItem = ({ categoryData }: { categoryData: any }) => {
     const progressPercent = categoryData.completed > 0 ? 

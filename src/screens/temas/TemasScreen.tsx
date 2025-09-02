@@ -8,7 +8,7 @@ import {
   TextInput,
   RefreshControl,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card, Icon } from '../../components/ui';
@@ -117,6 +117,14 @@ export const TemasScreen: React.FC = () => {
   useEffect(() => {
     filterThemes();
   }, [themes, searchQuery, activeFilter]);
+
+  // Refresh themes data when screen comes into focus (after completing quizzes)
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('🔄 Themes screen focused - refreshing theme data...');
+      fetchThemes();
+    }, [user])
+  );
 
   const filterThemes = () => {
     let filtered = themes;

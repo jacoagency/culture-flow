@@ -8,6 +8,7 @@ import {
   Switch,
   Alert,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card, Icon, Button } from '../../components/ui';
@@ -114,6 +115,14 @@ export const ConfiguracionesScreen: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, [user]);
+
+  // Refresh configuration data when screen comes into focus (after completing quizzes)
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('🔄 Configuration screen focused - refreshing data...');
+      fetchData();
+    }, [user])
+  );
 
   const updateUserSettings = async (key: keyof UserSettings, value: any) => {
     if (!user) return;

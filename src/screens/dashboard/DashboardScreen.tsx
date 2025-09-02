@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card, Button, Icon } from '../../components/ui';
@@ -144,6 +145,14 @@ export const DashboardScreen: React.FC = () => {
   useEffect(() => {
     fetchDashboardData();
   }, [user]);
+
+  // Refresh data when screen comes into focus (after completing quizzes)
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('🔄 Dashboard focused - refreshing data...');
+      fetchDashboardData();
+    }, [user])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
