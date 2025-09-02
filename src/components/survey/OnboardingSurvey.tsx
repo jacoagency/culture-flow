@@ -86,9 +86,11 @@ export const OnboardingSurvey: React.FC<OnboardingSurveyProps> = ({ onComplete }
     try {
       const { error } = await supabase
         .from('user_survey_responses')
-        .insert({
+        .upsert({
           user_id: user.id,
           ...surveyData,
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;
